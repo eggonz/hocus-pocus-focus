@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Usage: bump.sh <version>   e.g. bump.sh 0.2.0
-# Checks the repo is ready to release, sets versionName to <version> and increments versionCode
+# Checks the repo is ready to release and passes the CI checks (scripts/check.sh), sets versionName to <version> and increments versionCode
 # (unless versionName is already <version> and never tagged, e.g. the first release),
 # then builds a signed release APK with signing.env to make sure the release workflow will succeed.
-# Exit codes: 1 bad input or build failure, 2 repo not ready (nothing changed).
+# Exit codes: 1 bad input or build failure, 2 repo not ready, 3 checks failed (nothing changed for 2 and 3).
 set -euo pipefail
 cd "$(git rev-parse --show-toplevel)"
 
@@ -37,6 +37,12 @@ fi
 if [[ ! -f signing.env ]]; then
   echo "error: signing.env not found, see README.md (CI and releases)" >&2
   exit 2
+fi
+
+# Before anything changes, so a failing build, lint or test never gets a version bump or tag
+if ! ./scripts/check.sh -q; then
+  echo "error: checks failed (see above), not releasing" >&2
+  exit 3
 fi
 
 old_name=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' "$gradle_file")

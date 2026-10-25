@@ -70,7 +70,7 @@ This also works when pushing from Android Studio. Skip it for one push with `git
 
 GitHub Actions runs `scripts/check.sh` (debug build, lint, unit tests) on every push to `master` and every pull request (`.github/workflows/ci.yml`). The APK and the lint and test reports are attached to the run as artifacts.
 
-Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`). The tag must match `versionName` in `app/build.gradle.kts`:
+Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`). It doesn't run the checks, so run `./scripts/check.sh` before tagging (the pre-push hook does this on push). The tag must match `versionName` in `app/build.gradle.kts`:
 
 ```bash
 git tag v0.1.0 && git push origin v0.1.0

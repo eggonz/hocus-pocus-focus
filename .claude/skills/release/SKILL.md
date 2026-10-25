@@ -19,6 +19,7 @@ Use the version in the arguments (`$ARGUMENTS`). If none was given, read the cur
 Run `.claude/skills/release/bump.sh <version>`. It:
 
 - Stops with exit 2, changing nothing, if not on `master`, the tree is dirty, the tag exists, `origin/master` is ahead, or `signing.env` is missing. Report the reason to the user; don't fix it on your own (don't stash, pull or commit their changes).
+- Runs `scripts/check.sh` (build, lint, unit tests, as CI does) and stops with exit 3, changing nothing, if it fails. Never commit, tag or push in that case: report the lint errors and failed tests it lists. Fixing them is a separate change for the user to commit (see the `/check` skill), after which the release can be retried.
 - Doesn't bump if `versionName` already equals the version (only possible when it was never tagged, e.g. the first release); then the release commit is the current `HEAD`.
 - Exits 1 on a bad or older version, or if the signed build fails. On a build failure, revert the bump with `git checkout app/build.gradle.kts` and report the error.
 - Otherwise sets `versionName`, increments `versionCode` and builds a signed release APK locally, so the CI release won't fail on build or signing.
