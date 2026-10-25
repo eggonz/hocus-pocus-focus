@@ -85,10 +85,12 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (isFocusActive && event.keyCode in BLOCKED_KEYS) return true
-        return super.dispatchKeyEvent(event)
-    }
+    // Consuming these keeps the window from falling back to adjusting the volume
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean =
+        (isFocusActive && keyCode in BLOCKED_KEYS) || super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent): Boolean =
+        (isFocusActive && keyCode in BLOCKED_KEYS) || super.onKeyUp(keyCode, event)
 
     private companion object {
         val BLOCKED_KEYS = setOf(
