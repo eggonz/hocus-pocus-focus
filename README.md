@@ -18,7 +18,11 @@ Built with Kotlin and Jetpack Compose.
 
   See [How it works](#how-it-works) for the difference between the full and soft lock.
 - The screen stays on during a session.
-- When the timer reaches 0, focus mode ends and the phone works normally again.
+- When the timer reaches 0, focus mode ends, the alarm sound plays once, and the phone works normally again. Stopping early plays nothing.
+- **Settings** (gear button, top left of the start screen; not reachable during a session):
+  - **Alarm sound:** picked with the system sound picker (the default alarm sound unless changed; Silent turns it off). It plays at alarm volume.
+  - **Lock:** whether the app has the full lock (device owner, with the **Remove device owner** button) or the soft lock.
+  - The app version.
 - A dark violet and amber look in both the light and dark system themes, set in [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [DM Sans](https://github.com/googlefonts/dm-fonts) (bundled, SIL Open Font License, see `licenses/`).
 
 ## How it works
@@ -36,7 +40,7 @@ The app uses Android's **lock task mode**, in one of two strengths:
 | Way out before the timer ends | Only the STOP button | STOP button, or the system unpin gesture |
 
 - **Full lock:** the app is set as the phone's **device owner**. It then whitelists itself for lock task mode and turns off every lock task feature (`DevicePolicyManager.setLockTaskFeatures(..., LOCK_TASK_FEATURE_NONE)`): no Home, Recents, notification shade, status bar info or power menu.
-- **Soft lock:** without device owner, `startLockTask()` falls back to screen pinning. The app shows a warning on its start screen when it's in this mode.
+- **Soft lock:** without device owner, `startLockTask()` falls back to screen pinning. The settings screen says when it's in this mode.
 - **Volume keys:** the activity swallows volume key events while a session runs (`dispatchKeyEvent`).
 - **Timer:** the session's end time is saved, so the countdown stays correct while the screen is off, and a session survives the app being recreated.
 
@@ -118,22 +122,24 @@ If the command says there are accounts on the device right after a reboot, wait 
 
 ### Removing device owner
 
-A device-owner app **can't be uninstalled** normally. To undo it, open the app (with no session running) and tap **Remove device owner** at the bottom of the start screen. After that, the app uses the soft lock and can be uninstalled.
+A device-owner app **can't be uninstalled** normally. To undo it, open the app (with no session running), open the settings (gear, top left) and tap **Remove device owner**. After that, the app uses the soft lock and can be uninstalled.
 
 ## Project structure
 
 ```
 app/src/main/java/com/example/hocuspocusfocus/
 ├── MainActivity.kt        # Hosts the UI; applies the lock, screen-on flag and volume blocking
-├── FocusViewModel.kt      # Session timer and selected duration, persisted in SharedPreferences
+├── FocusViewModel.kt      # Session timer, selected duration and alarm sound, persisted in SharedPreferences
+├── AlarmPlayer.kt         # Plays the alarm sound once when a session runs out
 ├── FocusLock.kt           # Lock task mode and device-owner policies
 ├── FocusAdminReceiver.kt  # Device admin component targeted by `dpm set-device-owner`
 └── ui/
-    ├── FocusScreen.kt     # START button, duration picker, countdown and STOP button
+    ├── FocusScreen.kt     # START button, duration picker, settings button, countdown and STOP button
+    ├── SettingsScreen.kt  # Alarm sound, lock mode / device-owner removal, version
     └── theme/
         ├── Theme.kt       # Material 3 theme: the app's own dark palette
         └── Type.kt        # Typography from the bundled fonts in res/font
-app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, countdown formatting)
+app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, alarm, countdown formatting)
 scripts/check.sh                                # CI checks, also run by .githooks/pre-push
 licenses/                                       # Licenses of the bundled fonts
 ```

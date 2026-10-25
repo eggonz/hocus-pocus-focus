@@ -1,7 +1,11 @@
 package com.example.hocuspocusfocus
 
+import android.content.Intent
 import android.graphics.Color
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.KeyEvent
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
@@ -9,16 +13,20 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.core.content.IntentCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.hocuspocusfocus.ui.FocusScreen
+import com.example.hocuspocusfocus.ui.SettingsScreen
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -35,6 +43,14 @@ class MainActivity : ComponentActivity() {
 
     private val isFocusActive: Boolean
         get() = viewModel.remainingMillis.value != null
+
+    // The system sound picker; a null pick means Silent
+    private val pickAlarmSound = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        val data = result.data
+        if (result.resultCode == RESULT_OK && data != null) {
+            viewModel.setAlarmSound(IntentCompat.getParcelableExtra(data, RingtoneManager.EXTRA_RINGTONE_PICKED_URI, Uri::class.java))
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,26 +73,54 @@ class MainActivity : ComponentActivity() {
             HocusPocusFocusTheme {
                 val remainingMillis by viewModel.remainingMillis.collectAsStateWithLifecycle()
                 val durationMinutes by viewModel.durationMinutes.collectAsStateWithLifecycle()
+                val alarmSound by viewModel.alarmSound.collectAsStateWithLifecycle()
                 var isDeviceOwner by remember { mutableStateOf(focusLock.isDeviceOwner) }
+                var showSettings by rememberSaveable { mutableStateOf(false) }
 
                 // Lock task mode still delivers Back to the app
                 BackHandler(enabled = remainingMillis != null) {}
 
-                FocusScreen(
-                    remainingMillis = remainingMillis,
-                    durationMinutes = durationMinutes,
-                    isDeviceOwner = isDeviceOwner,
-                    onStepDuration = viewModel::stepDuration,
-                    onStart = viewModel::start,
-                    onStop = viewModel::stop,
-                    onRemoveDeviceOwner = {
-                        focusLock.releaseDeviceOwner()
-                        isDeviceOwner = false
-                    },
-                )
+                // Settings are only reachable between sessions
+                if (showSettings && remainingMillis == null) {
+                    BackHandler { showSettings = false }
+                    SettingsScreen(
+                        alarmSoundTitle = remember(alarmSound) { alarmSoundTitle(alarmSound) },
+                        isDeviceOwner = isDeviceOwner,
+                        versionName = BuildConfig.VERSION_NAME,
+                        onPickAlarmSound = { pickAlarmSound.launch(alarmSoundPickerIntent(alarmSound)) },
+                        onRemoveDeviceOwner = {
+                            focusLock.releaseDeviceOwner()
+                            isDeviceOwner = false
+                        },
+                        onBack = { showSettings = false },
+                    )
+                } else {
+                    FocusScreen(
+                        remainingMillis = remainingMillis,
+                        durationMinutes = durationMinutes,
+                        onStepDuration = viewModel::stepDuration,
+                        onStart = viewModel::start,
+                        onStop = viewModel::stop,
+                        onOpenSettings = { showSettings = true },
+                    )
+                }
             }
         }
     }
+
+    private fun alarmSoundPickerIntent(current: Uri?) = Intent(RingtoneManager.ACTION_RINGTONE_PICKER)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.alarm_sound))
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, Settings.System.DEFAULT_ALARM_ALERT_URI)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, current)
+
+    // getTitle can fail on a sound that has since been deleted
+    private fun alarmSoundTitle(sound: Uri?): String =
+        if (sound == null) getString(R.string.alarm_sound_silent)
+        else runCatching { RingtoneManager.getRingtone(this, sound)?.getTitle(this) }.getOrNull()
+            ?: getString(R.string.alarm_sound_unknown)
 
     // The system bars stay visible: lock task mode already empties them, and hiding them would
     // make Android show a misleading "swipe down from the top to exit" hint

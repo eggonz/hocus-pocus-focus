@@ -49,6 +49,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // For BuildConfig.VERSION_NAME on the settings screen
+        buildConfig = true
     }
     testOptions.unitTests {
         // Robolectric runs the unit tests against real Android resources

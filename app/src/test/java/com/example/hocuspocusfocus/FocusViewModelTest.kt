@@ -2,6 +2,8 @@ package com.example.hocuspocusfocus
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
+import android.provider.Settings
 import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +39,10 @@ class FocusViewModelTest {
     fun tearDown() = Dispatchers.resetMain()
 
     // The clock follows the dispatcher's virtual time, so delay() and now() stay in step
-    private fun TestScope.newViewModel() = FocusViewModel(app) { START_TIME + testScheduler.currentTime }
+    private fun TestScope.newViewModel() =
+        FocusViewModel(app, now = { START_TIME + testScheduler.currentTime }, playAlarm = { playedAlarms += it })
+
+    private val playedAlarms = mutableListOf<Uri>()
 
     private fun TestScope.advanceBy(millis: Long) {
         advanceTimeBy(millis)
@@ -151,6 +156,51 @@ class FocusViewModelTest {
     fun `an unknown saved duration falls back to the default`() = runTest(dispatcher) {
         prefs.edit { putInt("duration_minutes", 7) }
         assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
+    }
+
+    @Test
+    fun `the default alarm sound plays once when the time is up`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.start()
+        advanceBy(DEFAULT_DURATION_MILLIS - 1)
+        assertEquals(emptyList<Uri>(), playedAlarms)
+
+        advanceBy(1)
+        assertEquals(listOf(Settings.System.DEFAULT_ALARM_ALERT_URI), playedAlarms)
+    }
+
+    @Test
+    fun `stopping early plays no alarm`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.start()
+        advanceBy(5_000)
+        vm.stop()
+        advanceBy(DEFAULT_DURATION_MILLIS)
+        assertEquals(emptyList<Uri>(), playedAlarms)
+    }
+
+    @Test
+    fun `a silent alarm plays nothing`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.setAlarmSound(null)
+        vm.start()
+        advanceBy(DEFAULT_DURATION_MILLIS)
+        assertNull(vm.remainingMillis.value)
+        assertEquals(emptyList<Uri>(), playedAlarms)
+    }
+
+    @Test
+    fun `the selected alarm sound is remembered and played`() = runTest(dispatcher) {
+        val sound = Uri.parse("content://media/internal/audio/media/42")
+        newViewModel().setAlarmSound(null)
+        assertNull(newViewModel().alarmSound.value)
+
+        newViewModel().setAlarmSound(sound)
+        val vm = newViewModel()
+        assertEquals(sound, vm.alarmSound.value)
+        vm.start()
+        advanceBy(DEFAULT_DURATION_MILLIS)
+        assertEquals(listOf(sound), playedAlarms)
     }
 
     private companion object {
