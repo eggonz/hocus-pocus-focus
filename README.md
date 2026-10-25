@@ -1,4 +1,4 @@
-# Hocus Pocus Now You Focus
+# Hocus Pocus, Now You Focus
 
 A minimal Android focus app: one big button starts a 30-minute focus session, and while it runs the phone is locked down so you can't escape into other apps.
 
