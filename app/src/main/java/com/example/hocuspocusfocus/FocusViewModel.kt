@@ -12,7 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-const val FOCUS_DURATION_MILLIS = 30 * 60 * 1000L
+/** The session lengths the user can pick from, shortest first. */
+val FOCUS_DURATIONS_MINUTES = listOf(5, 10, 15, 20, 30, 60, 90, 120, 180)
+const val DEFAULT_FOCUS_DURATION_MINUTES = 30
 
 /**
  * The focus session timer. The end time is persisted, so a session survives the activity or
@@ -34,6 +36,14 @@ class FocusViewModel(
     /** Time left in the session, or null when focus mode is off. */
     val remainingMillis: StateFlow<Long?> = _remainingMillis.asStateFlow()
 
+    private val _durationMinutes = MutableStateFlow(
+        prefs.getInt(KEY_DURATION, DEFAULT_FOCUS_DURATION_MINUTES)
+            .takeIf { it in FOCUS_DURATIONS_MINUTES } ?: DEFAULT_FOCUS_DURATION_MINUTES,
+    )
+
+    /** Length of the next session, one of [FOCUS_DURATIONS_MINUTES]. Remembered across launches. */
+    val durationMinutes: StateFlow<Int> = _durationMinutes.asStateFlow()
+
     private var ticker: Job? = null
 
     init {
@@ -41,8 +51,16 @@ class FocusViewModel(
         if (savedEnd > now()) countDownTo(savedEnd) else clear()
     }
 
+    /** Moves the selected duration [steps] entries along [FOCUS_DURATIONS_MINUTES], stopping at the ends. */
+    fun stepDuration(steps: Int) {
+        val index = FOCUS_DURATIONS_MINUTES.indexOf(_durationMinutes.value) + steps
+        val minutes = FOCUS_DURATIONS_MINUTES[index.coerceIn(FOCUS_DURATIONS_MINUTES.indices)]
+        prefs.edit { putInt(KEY_DURATION, minutes) }
+        _durationMinutes.value = minutes
+    }
+
     fun start() {
-        val end = now() + FOCUS_DURATION_MILLIS
+        val end = now() + _durationMinutes.value * 60_000L
         prefs.edit { putLong(KEY_END_TIME, end) }
         countDownTo(end)
     }
@@ -73,5 +91,6 @@ class FocusViewModel(
 
     private companion object {
         const val KEY_END_TIME = "end_time"
+        const val KEY_DURATION = "duration_minutes"
     }
 }

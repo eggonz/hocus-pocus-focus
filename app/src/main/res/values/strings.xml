@@ -2,7 +2,8 @@
     <string name="app_name">Hocus Pocus, Now You Focus</string>
     <string name="launcher_name">Hocus Pocus</string>
     <string name="start">START</string>
-    <string name="start_duration">30 min</string>
+    <string name="shorter">Shorter</string>
+    <string name="longer">Longer</string>
     <string name="stop">Stop</string>
     <string name="focus_label">Focus</string>
     <string name="soft_lock_warning">Not device owner: using screen pinning, which can be undone with the unpin gesture.</string>

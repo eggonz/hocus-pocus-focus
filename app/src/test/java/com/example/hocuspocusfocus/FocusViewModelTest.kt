@@ -56,11 +56,11 @@ class FocusViewModelTest {
         val vm = newViewModel()
         vm.start()
         runCurrent()
-        assertEquals(FOCUS_DURATION_MILLIS, vm.remainingMillis.value)
-        assertEquals(START_TIME + FOCUS_DURATION_MILLIS, savedEndTime)
+        assertEquals(DEFAULT_DURATION_MILLIS, vm.remainingMillis.value)
+        assertEquals(START_TIME + DEFAULT_DURATION_MILLIS, savedEndTime)
 
         advanceBy(1_000)
-        assertEquals(FOCUS_DURATION_MILLIS - 1_000, vm.remainingMillis.value)
+        assertEquals(DEFAULT_DURATION_MILLIS - 1_000, vm.remainingMillis.value)
         vm.stop()
     }
 
@@ -69,7 +69,7 @@ class FocusViewModelTest {
         val vm = newViewModel()
         vm.start()
         // Updates land on whole seconds, so the last second shows until the very end
-        advanceBy(FOCUS_DURATION_MILLIS - 1)
+        advanceBy(DEFAULT_DURATION_MILLIS - 1)
         assertEquals(1_000L, vm.remainingMillis.value)
 
         advanceBy(1)
@@ -98,7 +98,7 @@ class FocusViewModelTest {
 
         val second = newViewModel()
         runCurrent()
-        assertEquals(FOCUS_DURATION_MILLIS - 5_000, second.remainingMillis.value)
+        assertEquals(DEFAULT_DURATION_MILLIS - 5_000, second.remainingMillis.value)
         first.stop()
         second.stop()
     }
@@ -111,7 +111,50 @@ class FocusViewModelTest {
         assertEquals(0L, savedEndTime)
     }
 
+    @Test
+    fun `defaults to 30 minutes`() = runTest(dispatcher) {
+        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
+    }
+
+    @Test
+    fun `stepping the duration walks the list and stops at the ends`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.stepDuration(1)
+        assertEquals(60, vm.durationMinutes.value)
+        vm.stepDuration(-2)
+        assertEquals(20, vm.durationMinutes.value)
+
+        vm.stepDuration(-100)
+        assertEquals(FOCUS_DURATIONS_MINUTES.first(), vm.durationMinutes.value)
+        vm.stepDuration(100)
+        assertEquals(FOCUS_DURATIONS_MINUTES.last(), vm.durationMinutes.value)
+    }
+
+    @Test
+    fun `start uses the selected duration`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.stepDuration(-4)
+        vm.start()
+        runCurrent()
+        assertEquals(5 * 60_000L, vm.remainingMillis.value)
+        assertEquals(START_TIME + 5 * 60_000L, savedEndTime)
+        vm.stop()
+    }
+
+    @Test
+    fun `the selected duration is remembered`() = runTest(dispatcher) {
+        newViewModel().stepDuration(2)
+        assertEquals(90, newViewModel().durationMinutes.value)
+    }
+
+    @Test
+    fun `an unknown saved duration falls back to the default`() = runTest(dispatcher) {
+        prefs.edit { putInt("duration_minutes", 7) }
+        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
+    }
+
     private companion object {
         const val START_TIME = 1_000_000_000_000L
+        const val DEFAULT_DURATION_MILLIS = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L
     }
 }

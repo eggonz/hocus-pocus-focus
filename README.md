@@ -1,12 +1,13 @@
 # Hocus Pocus, Now You Focus
 
-A minimal Android focus app: one big button starts a 30-minute focus session, and while it runs the phone is locked down so you can't escape into other apps.
+A minimal Android focus app: one big button starts a focus session (5 minutes to 3 hours), and while it runs the phone is locked down so you can't escape into other apps.
 
 Built with Kotlin and Jetpack Compose.
 
 ## Features
 
-- **Big START button** starts focus mode with a **30:00** countdown timer.
+- **Big START button** starts focus mode with a countdown timer.
+- **Duration picker** under the button: −/+ step through 5, 10, 15, 20 and 30 min, 1 h, 1.5 h, 2 h and 3 h (30 min by default; the last choice is remembered).
 - **Small STOP button** ends focus mode early.
 - **While focus mode is active, the app blocks:**
   - Navigation bar: Home, Back, Recents (and gesture navigation)
@@ -122,11 +123,11 @@ A device-owner app **can't be uninstalled** normally. To undo it, open the app (
 ```
 app/src/main/java/com/example/hocuspocusfocus/
 ├── MainActivity.kt        # Hosts the UI; applies the lock, screen-on flag and volume blocking
-├── FocusViewModel.kt      # 30-minute timer, end time persisted in SharedPreferences
+├── FocusViewModel.kt      # Session timer and selected duration, persisted in SharedPreferences
 ├── FocusLock.kt           # Lock task mode and device-owner policies
 ├── FocusAdminReceiver.kt  # Device admin component targeted by `dpm set-device-owner`
 └── ui/
-    ├── FocusScreen.kt     # START button, countdown and STOP button
+    ├── FocusScreen.kt     # START button, duration picker, countdown and STOP button
     └── theme/Theme.kt     # Material 3 theme
 app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, countdown formatting)
 scripts/check.sh                                # CI checks, also run by .githooks/pre-push

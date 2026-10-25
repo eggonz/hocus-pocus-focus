@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HocusPocusFocusTheme {
                 val remainingMillis by viewModel.remainingMillis.collectAsStateWithLifecycle()
+                val durationMinutes by viewModel.durationMinutes.collectAsStateWithLifecycle()
                 var isDeviceOwner by remember { mutableStateOf(focusLock.isDeviceOwner) }
 
                 // Lock task mode still delivers Back to the app
@@ -60,7 +61,9 @@ class MainActivity : ComponentActivity() {
 
                 FocusScreen(
                     remainingMillis = remainingMillis,
+                    durationMinutes = durationMinutes,
                     isDeviceOwner = isDeviceOwner,
+                    onStepDuration = viewModel::stepDuration,
                     onStart = viewModel::start,
                     onStop = viewModel::stop,
                     onRemoveDeviceOwner = {

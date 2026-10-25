@@ -3,15 +3,19 @@ package com.example.hocuspocusfocus.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -24,21 +28,28 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.hocuspocusfocus.FOCUS_DURATION_MILLIS
+import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_MINUTES
+import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 
-/** Shows the big START button when [remainingMillis] is null, and the countdown otherwise. */
+/**
+ * Shows the big START button and the [durationMinutes] picker when [remainingMillis] is null, and
+ * the countdown otherwise.
+ */
 @Composable
 fun FocusScreen(
     remainingMillis: Long?,
+    durationMinutes: Int,
     isDeviceOwner: Boolean,
+    onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
     onRemoveDeviceOwner: () -> Unit,
@@ -52,7 +63,7 @@ fun FocusScreen(
             contentAlignment = Alignment.Center,
         ) {
             if (remainingMillis == null) {
-                IdleContent(isDeviceOwner, onStart, onRemoveDeviceOwner)
+                IdleContent(durationMinutes, isDeviceOwner, onStepDuration, onStart, onRemoveDeviceOwner)
             } else {
                 FocusContent(remainingMillis, onStop)
             }
@@ -62,24 +73,24 @@ fun FocusScreen(
 
 @Composable
 private fun IdleContent(
+    durationMinutes: Int,
     isDeviceOwner: Boolean,
+    onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onRemoveDeviceOwner: () -> Unit,
 ) {
     var confirmRemoval by rememberSaveable { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Button(
-            onClick = onStart,
-            shape = CircleShape,
-            modifier = Modifier
-                .size(260.dp)
-                .align(Alignment.Center),
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Button(onClick = onStart, shape = CircleShape, modifier = Modifier.size(260.dp)) {
                 Text(stringResource(R.string.start), fontSize = 44.sp, fontWeight = FontWeight.Bold)
-                Text(stringResource(R.string.start_duration), style = MaterialTheme.typography.titleMedium)
             }
+            Spacer(Modifier.height(24.dp))
+            DurationPicker(durationMinutes, onStepDuration)
         }
 
         Column(
@@ -120,6 +131,31 @@ private fun IdleContent(
 }
 
 @Composable
+private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        IconButton(
+            onClick = { onStepDuration(-1) },
+            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.first(),
+        ) {
+            Icon(painterResource(R.drawable.ic_minus), stringResource(R.string.shorter))
+        }
+        Text(
+            text = formatDuration(durationMinutes),
+            style = MaterialTheme.typography.headlineSmall,
+            textAlign = TextAlign.Center,
+            // Wide enough for the longest label, so the buttons don't move as it changes
+            modifier = Modifier.widthIn(min = 112.dp),
+        )
+        IconButton(
+            onClick = { onStepDuration(1) },
+            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.last(),
+        ) {
+            Icon(painterResource(R.drawable.ic_plus), stringResource(R.string.longer))
+        }
+    }
+}
+
+@Composable
 private fun FocusContent(remainingMillis: Long, onStop: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -130,9 +166,11 @@ private fun FocusContent(remainingMillis: Long, onStop: () -> Unit) {
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        val countdown = formatCountdown(remainingMillis)
         Text(
-            text = formatCountdown(remainingMillis),
-            fontSize = 96.sp,
+            text = countdown,
+            // h:mm:ss needs a smaller size to fit the screen width
+            fontSize = if (countdown.length > 5) 72.sp else 96.sp,
             fontWeight = FontWeight.Light,
         )
         Spacer(Modifier.height(48.dp))
@@ -142,17 +180,38 @@ private fun FocusContent(remainingMillis: Long, onStop: () -> Unit) {
     }
 }
 
-/** Formats as mm:ss, rounding up so the display reads 30:00 at the start and 00:01 last. */
+/**
+ * Formats as mm:ss, or h:mm:ss from an hour up, rounding up so the display reads 30:00 at the
+ * start and 00:01 last.
+ */
 internal fun formatCountdown(millis: Long): String {
     val totalSeconds = (millis + 999) / 1000
-    return "%02d:%02d".format(totalSeconds / 60, totalSeconds % 60)
+    val hours = totalSeconds / 3600
+    val minutes = totalSeconds / 60 % 60
+    val seconds = totalSeconds % 60
+    return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(minutes, seconds)
+}
+
+/** Formats a picker duration as 5 min, 1 h or 1.5 h. */
+internal fun formatDuration(minutes: Int): String = when {
+    minutes < 60 -> "$minutes min"
+    minutes % 60 == 0 -> "${minutes / 60} h"
+    else -> "${minutes / 60.0} h"
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun IdlePreview() {
     HocusPocusFocusTheme {
-        FocusScreen(null, isDeviceOwner = false, onStart = {}, onStop = {}, onRemoveDeviceOwner = {})
+        FocusScreen(
+            remainingMillis = null,
+            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
+            isDeviceOwner = false,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onRemoveDeviceOwner = {},
+        )
     }
 }
 
@@ -160,6 +219,14 @@ private fun IdlePreview() {
 @Composable
 private fun FocusPreview() {
     HocusPocusFocusTheme {
-        FocusScreen(FOCUS_DURATION_MILLIS, isDeviceOwner = true, onStart = {}, onStop = {}, onRemoveDeviceOwner = {})
+        FocusScreen(
+            remainingMillis = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L,
+            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
+            isDeviceOwner = true,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onRemoveDeviceOwner = {},
+        )
     }
 }
