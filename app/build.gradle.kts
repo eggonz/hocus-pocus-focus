@@ -50,6 +50,12 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions.unitTests {
+        // Robolectric runs the unit tests against real Android resources
+        isIncludeAndroidResources = true
+        // Robolectric's API 37 runtime reaches into FileDescriptor internals, which the JDK hides
+        all { it.jvmArgs("--add-exports=java.base/jdk.internal.access=ALL-UNNAMED") }
+    }
 }
 
 dependencies {
@@ -66,4 +72,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

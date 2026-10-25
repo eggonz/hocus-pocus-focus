@@ -22,8 +22,8 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v5
 
-      - name: Build and lint
-        run: ./gradlew assembleDebug lint
+      - name: Build, lint and unit tests
+        run: ./scripts/check.sh
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -37,4 +37,12 @@ jobs:
         with:
           name: lint-report
           path: app/build/reports/lint-results-*.html
+          if-no-files-found: ignore
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/
           if-no-files-found: ignore

@@ -18,7 +18,14 @@ const val FOCUS_DURATION_MILLIS = 30 * 60 * 1000L
  * The focus session timer. The end time is persisted, so a session survives the activity or
  * process being recreated, and the countdown stays correct while the screen is off.
  */
-class FocusViewModel(app: Application) : AndroidViewModel(app) {
+class FocusViewModel(
+    app: Application,
+    // Injectable so tests can drive the countdown with virtual time
+    private val now: () -> Long,
+) : AndroidViewModel(app) {
+
+    // The constructor the default ViewModel factory calls
+    constructor(app: Application) : this(app, System::currentTimeMillis)
 
     private val prefs = app.getSharedPreferences("focus", Context.MODE_PRIVATE)
 
@@ -31,11 +38,11 @@ class FocusViewModel(app: Application) : AndroidViewModel(app) {
 
     init {
         val savedEnd = prefs.getLong(KEY_END_TIME, 0L)
-        if (savedEnd > System.currentTimeMillis()) countDownTo(savedEnd) else clear()
+        if (savedEnd > now()) countDownTo(savedEnd) else clear()
     }
 
     fun start() {
-        val end = System.currentTimeMillis() + FOCUS_DURATION_MILLIS
+        val end = now() + FOCUS_DURATION_MILLIS
         prefs.edit { putLong(KEY_END_TIME, end) }
         countDownTo(end)
     }
@@ -49,7 +56,7 @@ class FocusViewModel(app: Application) : AndroidViewModel(app) {
         ticker?.cancel()
         ticker = viewModelScope.launch {
             while (true) {
-                val left = end - System.currentTimeMillis()
+                val left = end - now()
                 if (left <= 0) break
                 _remainingMillis.value = left
                 // Wake up exactly when the displayed second changes

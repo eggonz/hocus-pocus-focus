@@ -143,7 +143,7 @@ private fun FocusContent(remainingMillis: Long, onStop: () -> Unit) {
 }
 
 /** Formats as mm:ss, rounding up so the display reads 30:00 at the start and 00:01 last. */
-private fun formatCountdown(millis: Long): String {
+internal fun formatCountdown(millis: Long): String {
     val totalSeconds = (millis + 999) / 1000
     return "%02d:%02d".format(totalSeconds / 60, totalSeconds % 60)
 }

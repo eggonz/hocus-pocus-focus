@@ -54,9 +54,21 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Minimum Android version: 9 (API 28).
 
+## Checks
+
+`./scripts/check.sh` runs what CI runs: the debug build, Android lint and the JVM unit tests (`app/src/test`, using Robolectric). On failure it lists the lint errors and failed tests.
+
+To run it automatically before every push, enable the repo's hooks once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This also works when pushing from Android Studio. Skip it for one push with `git push --no-verify`, or untick **Run Git hooks** in Android Studio's push dialog.
+
 ## CI and releases
 
-GitHub Actions builds the debug APK and runs lint on every push to `master` and every pull request (`.github/workflows/ci.yml`). The APK is attached to the run as an artifact.
+GitHub Actions runs `scripts/check.sh` (debug build, lint, unit tests) on every push to `master` and every pull request (`.github/workflows/ci.yml`). The APK and the lint and test reports are attached to the run as artifacts.
 
 Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`). The tag must match `versionName` in `app/build.gradle.kts`:
 
@@ -116,4 +128,6 @@ app/src/main/java/com/example/hocuspocusfocus/
 └── ui/
     ├── FocusScreen.kt     # START button, countdown and STOP button
     └── theme/Theme.kt     # Material 3 theme
+app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, countdown formatting)
+scripts/check.sh                                # CI checks, also run by .githooks/pre-push
 ```
