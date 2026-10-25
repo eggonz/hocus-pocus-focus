@@ -54,6 +54,37 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 
 Minimum Android version: 9 (API 28).
 
+## CI and releases
+
+GitHub Actions builds the debug APK and runs lint on every push to `master` and every pull request (`.github/workflows/ci.yml`). The APK is attached to the run as an artifact.
+
+Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`). The tag must match `versionName` in `app/build.gradle.kts`:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Release signing needs a keystore, stored as repository secrets (Settings → Secrets and variables → Actions). Create one once and keep it safe: updates to an installed app must be signed with the same key.
+
+```bash
+keytool -genkeypair -v -keystore release.jks -alias release -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 release.jks   # value for SIGNING_KEYSTORE_BASE64
+```
+
+| Secret | Value |
+|---|---|
+| `SIGNING_KEYSTORE_BASE64` | The keystore, base64-encoded |
+| `SIGNING_KEYSTORE_PASSWORD` | Keystore password |
+| `SIGNING_KEY_ALIAS` | Key alias (`release` above) |
+| `SIGNING_KEY_PASSWORD` | Key password |
+
+To sign a release build locally, set the same variables, with `SIGNING_KEYSTORE_FILE` pointing at the keystore instead of the base64 value, and run `./gradlew assembleRelease`. A gitignored `signing.env` in the project root can hold them all:
+
+```bash
+set -a; . ./signing.env; set +a
+./gradlew assembleRelease
+```
+
 ## Enable the full lock (device owner)
 
 Android only allows setting a device owner on a phone with **no accounts** on it (no Google account etc.). This usually means a freshly reset phone, or one where you temporarily remove all accounts in Settings → Accounts.

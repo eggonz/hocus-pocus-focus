@@ -20,8 +20,22 @@ android {
         versionName = "0.1.0"
     }
 
+    // Release signing comes from the environment (set by the release workflow); without it the release APK is unsigned
+    val releaseKeystore = providers.environmentVariable("SIGNING_KEYSTORE_FILE").orNull
+    signingConfigs {
+        if (releaseKeystore != null) {
+            create("release") {
+                storeFile = file(releaseKeystore)
+                storePassword = providers.environmentVariable("SIGNING_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("SIGNING_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("SIGNING_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (releaseKeystore != null) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

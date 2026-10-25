@@ -15,7 +15,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk      # install on a dev
 adb shell dpm set-device-owner com.example.hocuspocusfocus/.FocusAdminReceiver  # enable full lock (device must have no accounts)
 ```
 
-There are no tests yet. Dependencies are declared in `gradle/libs.versions.toml`; Compose artifacts take their versions from the Compose BOM, so don't add versions to them.
+CI (`.github/workflows/ci.yml`) runs `assembleDebug lint` on pushes to `master` and PRs. Pushing a `v<versionName>` tag runs `release.yml`, which signs the release APK from repo secrets (passed to Gradle as `SIGNING_*` env vars, see README.md) and publishes a GitHub release; bump `versionName`/`versionCode` before tagging (the `/release` skill does all of this). There are no tests yet. Dependencies are declared in `gradle/libs.versions.toml`; Compose artifacts take their versions from the Compose BOM, so don't add versions to them.
 
 ## Architecture
 
