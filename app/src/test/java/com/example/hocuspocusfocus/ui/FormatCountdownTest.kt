@@ -35,10 +35,11 @@ class FormatCountdownTest {
 
     @Test
     fun `formats picker durations`() {
-        assertEquals("5 min", formatDuration(5))
-        assertEquals("1 h", formatDuration(60))
-        assertEquals("1.5 h", formatDuration(90))
-        assertEquals("3 h", formatDuration(180))
+        assertEquals("10 s", formatDuration(10))
+        assertEquals("5 min", formatDuration(5 * 60))
+        assertEquals("1 h", formatDuration(60 * 60))
+        assertEquals("1.5 h", formatDuration(90 * 60))
+        assertEquals("3 h", formatDuration(180 * 60))
     }
 
     private companion object {

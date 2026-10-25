@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-- **App:** a START button begins a focus session, during which the phone is locked to the app via lock task mode. A −/+ picker under the button sets the session length (`FOCUS_DURATIONS_MINUTES`, 5 min to 3 h).
+- **App:** a START button begins a focus session, during which the phone is locked to the app via lock task mode. A −/+ picker under the button sets the session length (`FOCUS_DURATIONS_SECONDS`, 5 min to 3 h, plus 10 s in debug builds).
 - **Stack:** single-module Android app (`:app`, package `com.example.hocuspocusfocus`), Kotlin + Jetpack Compose, minSdk 28, compile/target SDK 37.
 - **Spec:** README.md is the user-facing spec (features, platform limits, device-owner setup); keep it in sync when behavior changes.
 
@@ -25,7 +25,7 @@ CI (`.github/workflows/ci.yml`) runs `scripts/check.sh` on pushes to `master` an
 
 The lock is driven by the timer state, not by button handlers:
 
-- `FocusViewModel` owns the session. `remainingMillis: StateFlow<Long?>` is the single source of truth: `null` means focus mode is off. Only the session **end time** is persisted (SharedPreferences `focus` / `end_time`), so the countdown survives screen-off and activity/process recreation; on init an unexpired end time resumes the session. The selected `durationMinutes` is persisted too (`duration_minutes`), and so is `alarmSound` (`alarm_sound`: absent means the system default notification sound, `""` means silent). When a countdown runs out by itself (not on `stop()`), the alarm sound is passed to the injectable `playAlarm`, which defaults to `AlarmPlayer` (plays it once on the alarm stream, cut off after 4 s).
+- `FocusViewModel` owns the session. `remainingMillis: StateFlow<Long?>` is the single source of truth: `null` means focus mode is off. Only the session **end time** is persisted (SharedPreferences `focus` / `end_time`), so the countdown survives screen-off and activity/process recreation; on init an unexpired end time resumes the session. The selected `durationSeconds` is persisted too (`duration_seconds`; older versions saved `duration_minutes`, still read as a fallback), and so is `alarmSound` (`alarm_sound`: absent means the system default notification sound, `""` means silent). When a countdown runs out by itself (not on `stop()`), the alarm sound is passed to the injectable `playAlarm`, which defaults to `AlarmPlayer` (plays it once on the alarm stream, cut off after 4 s).
 - `MainActivity` collects `remainingMillis` while `RESUMED` (lock task can only start from the foreground) and calls `setFocusMode(active)` on changes, which toggles the lock and `FLAG_KEEP_SCREEN_ON`. `focusModeApplied` tracks what was last applied so resuming after the screen-pinning prompt doesn't re-lock, and a recreated activity re-locks an ongoing session. Volume keys are swallowed in `onKeyDown`/`onKeyUp` (overriding `dispatchKeyEvent` trips lint's `RestrictedApi` check, since `ComponentActivity`'s override is restricted); Back is swallowed with a `BackHandler`, since lock task mode still delivers it.
 - `FocusLock` wraps lock task mode with two strengths:
   - **Device owner** (full lock): `applyPolicies()` whitelists the app via `setLockTaskPackages` and sets `LOCK_TASK_FEATURE_NONE` (no Home, Recents, shade, status bar info, power menu).

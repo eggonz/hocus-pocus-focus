@@ -7,7 +7,7 @@ Built with Kotlin and Jetpack Compose.
 ## Features
 
 - **Big START button** starts focus mode with a countdown timer.
-- **Duration picker** under the button: −/+ step through 5, 10, 15, 20 and 30 min, 1 h, 1.5 h, 2 h and 3 h (30 min by default; the last choice is remembered).
+- **Duration picker** under the button: −/+ step through 5, 10, 15, 20 and 30 min, 1 h, 1.5 h, 2 h and 3 h (30 min by default; the last choice is remembered). Debug builds also offer 10 s, for trying out the end of a session.
 - **Small STOP button** ends focus mode early.
 - **Countdown ring** shows how much of the session is left.
 - **While focus mode is active, the app blocks:**

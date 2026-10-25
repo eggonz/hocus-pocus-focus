@@ -38,8 +38,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_MINUTES
-import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
+import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_SECONDS
+import com.example.hocuspocusfocus.FOCUS_DURATIONS_SECONDS
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.Glow
@@ -47,13 +47,13 @@ import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 import com.example.hocuspocusfocus.ui.theme.Night
 
 /**
- * Shows the big START button, the [durationMinutes] picker and the settings button when
+ * Shows the big START button, the [durationSeconds] picker and the settings button when
  * [remainingMillis] is null, and the countdown otherwise.
  */
 @Composable
 fun FocusScreen(
     remainingMillis: Long?,
-    durationMinutes: Int,
+    durationSeconds: Int,
     onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
@@ -69,9 +69,9 @@ fun FocusScreen(
             contentAlignment = Alignment.Center,
         ) {
             if (remainingMillis == null) {
-                IdleContent(durationMinutes, onStepDuration, onStart, onOpenSettings)
+                IdleContent(durationSeconds, onStepDuration, onStart, onOpenSettings)
             } else {
-                FocusContent(remainingMillis, durationMinutes, onStop)
+                FocusContent(remainingMillis, durationSeconds, onStop)
             }
         }
     }
@@ -79,7 +79,7 @@ fun FocusScreen(
 
 @Composable
 private fun IdleContent(
-    durationMinutes: Int,
+    durationSeconds: Int,
     onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onOpenSettings: () -> Unit,
@@ -117,13 +117,13 @@ private fun IdleContent(
                 )
             }
             Spacer(Modifier.height(40.dp))
-            DurationPicker(durationMinutes, onStepDuration)
+            DurationPicker(durationSeconds, onStepDuration)
         }
     }
 }
 
 @Composable
-private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) -> Unit) {
+private fun DurationPicker(durationSeconds: Int, onStepDuration: (steps: Int) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -132,12 +132,12 @@ private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) ->
     ) {
         IconButton(
             onClick = { onStepDuration(-1) },
-            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.first(),
+            enabled = durationSeconds != FOCUS_DURATIONS_SECONDS.first(),
         ) {
             Icon(painterResource(R.drawable.ic_minus), stringResource(R.string.shorter))
         }
         Text(
-            text = formatDuration(durationMinutes),
+            text = formatDuration(durationSeconds),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
             textAlign = TextAlign.Center,
             // Wide enough for the longest label, so the buttons don't move as it changes
@@ -145,7 +145,7 @@ private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) ->
         )
         IconButton(
             onClick = { onStepDuration(1) },
-            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.last(),
+            enabled = durationSeconds != FOCUS_DURATIONS_SECONDS.last(),
         ) {
             Icon(painterResource(R.drawable.ic_plus), stringResource(R.string.longer))
         }
@@ -153,7 +153,7 @@ private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) ->
 }
 
 @Composable
-private fun FocusContent(remainingMillis: Long, durationMinutes: Int, onStop: () -> Unit) {
+private fun FocusContent(remainingMillis: Long, durationSeconds: Int, onStop: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -165,9 +165,9 @@ private fun FocusContent(remainingMillis: Long, durationMinutes: Int, onStop: ()
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
         ) {
-            // The picker is hidden during a session, so durationMinutes is still the session length
+            // The picker is hidden during a session, so durationSeconds is still the session length
             CircularProgressIndicator(
-                progress = { (remainingMillis / (durationMinutes * 60_000f)).coerceIn(0f, 1f) },
+                progress = { (remainingMillis / (durationSeconds * 1000f)).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxSize(),
                 strokeWidth = 6.dp,
                 trackColor = MaterialTheme.colorScheme.outlineVariant,
@@ -212,10 +212,11 @@ internal fun formatCountdown(millis: Long): String {
 }
 
 /** Formats a picker duration as 5 min, 1 h or 1.5 h. */
-internal fun formatDuration(minutes: Int): String = when {
-    minutes < 60 -> "$minutes min"
-    minutes % 60 == 0 -> "${minutes / 60} h"
-    else -> "${minutes / 60.0} h"
+internal fun formatDuration(seconds: Int): String = when {
+    seconds < 60 -> "$seconds s"
+    seconds < 3600 -> "${seconds / 60} min"
+    seconds % 3600 == 0 -> "${seconds / 3600} h"
+    else -> "${seconds / 3600.0} h"
 }
 
 @Preview(showBackground = true)
@@ -224,7 +225,7 @@ private fun IdlePreview() {
     HocusPocusFocusTheme {
         FocusScreen(
             remainingMillis = null,
-            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
+            durationSeconds = DEFAULT_FOCUS_DURATION_SECONDS,
             onStepDuration = {},
             onStart = {},
             onStop = {},
@@ -238,8 +239,8 @@ private fun IdlePreview() {
 private fun FocusPreview() {
     HocusPocusFocusTheme {
         FocusScreen(
-            remainingMillis = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L,
-            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
+            remainingMillis = DEFAULT_FOCUS_DURATION_SECONDS * 1000L,
+            durationSeconds = DEFAULT_FOCUS_DURATION_SECONDS,
             onStepDuration = {},
             onStart = {},
             onStop = {},

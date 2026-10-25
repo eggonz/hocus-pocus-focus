@@ -15,9 +15,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/** The session lengths the user can pick from, shortest first. */
-val FOCUS_DURATIONS_MINUTES = listOf(5, 10, 15, 20, 30, 60, 90, 120, 180)
-const val DEFAULT_FOCUS_DURATION_MINUTES = 30
+/** The session lengths the user can pick from, in seconds, shortest first. Debug builds add 10 s for trying out a session's end. */
+val FOCUS_DURATIONS_SECONDS =
+    (if (BuildConfig.DEBUG) listOf(10) else emptyList()) + listOf(5, 10, 15, 20, 30, 60, 90, 120, 180).map { it * 60 }
+const val DEFAULT_FOCUS_DURATION_SECONDS = 30 * 60
 
 /**
  * The focus session timer. The end time is persisted, so a session survives the activity or
@@ -41,13 +42,14 @@ class FocusViewModel(
     /** Time left in the session, or null when focus mode is off. */
     val remainingMillis: StateFlow<Long?> = _remainingMillis.asStateFlow()
 
-    private val _durationMinutes = MutableStateFlow(
-        prefs.getInt(KEY_DURATION, DEFAULT_FOCUS_DURATION_MINUTES)
-            .takeIf { it in FOCUS_DURATIONS_MINUTES } ?: DEFAULT_FOCUS_DURATION_MINUTES,
+    // Falls back to the duration saved in minutes by older versions
+    private val _durationSeconds = MutableStateFlow(
+        prefs.getInt(KEY_DURATION, prefs.getInt(KEY_DURATION_MINUTES, 0) * 60)
+            .takeIf { it in FOCUS_DURATIONS_SECONDS } ?: DEFAULT_FOCUS_DURATION_SECONDS,
     )
 
-    /** Length of the next session, one of [FOCUS_DURATIONS_MINUTES]. Remembered across launches. */
-    val durationMinutes: StateFlow<Int> = _durationMinutes.asStateFlow()
+    /** Length of the next session in seconds, one of [FOCUS_DURATIONS_SECONDS]. Remembered across launches. */
+    val durationSeconds: StateFlow<Int> = _durationSeconds.asStateFlow()
 
     // Saved as "" for silent; never chosen means the system's default notification sound, which is short
     private val _alarmSound = MutableStateFlow(
@@ -68,12 +70,12 @@ class FocusViewModel(
         if (savedEnd > now()) countDownTo(savedEnd) else clear()
     }
 
-    /** Moves the selected duration [steps] entries along [FOCUS_DURATIONS_MINUTES], stopping at the ends. */
+    /** Moves the selected duration [steps] entries along [FOCUS_DURATIONS_SECONDS], stopping at the ends. */
     fun stepDuration(steps: Int) {
-        val index = FOCUS_DURATIONS_MINUTES.indexOf(_durationMinutes.value) + steps
-        val minutes = FOCUS_DURATIONS_MINUTES[index.coerceIn(FOCUS_DURATIONS_MINUTES.indices)]
-        prefs.edit { putInt(KEY_DURATION, minutes) }
-        _durationMinutes.value = minutes
+        val index = FOCUS_DURATIONS_SECONDS.indexOf(_durationSeconds.value) + steps
+        val seconds = FOCUS_DURATIONS_SECONDS[index.coerceIn(FOCUS_DURATIONS_SECONDS.indices)]
+        prefs.edit { putInt(KEY_DURATION, seconds) }
+        _durationSeconds.value = seconds
     }
 
     fun setAlarmSound(sound: Uri?) {
@@ -82,7 +84,7 @@ class FocusViewModel(
     }
 
     fun start() {
-        val end = now() + _durationMinutes.value * 60_000L
+        val end = now() + _durationSeconds.value * 1000L
         prefs.edit { putLong(KEY_END_TIME, end) }
         countDownTo(end)
     }
@@ -115,7 +117,8 @@ class FocusViewModel(
 
     private companion object {
         const val KEY_END_TIME = "end_time"
-        const val KEY_DURATION = "duration_minutes"
+        const val KEY_DURATION = "duration_seconds"
+        const val KEY_DURATION_MINUTES = "duration_minutes"
         const val KEY_ALARM_SOUND = "alarm_sound"
     }
 }

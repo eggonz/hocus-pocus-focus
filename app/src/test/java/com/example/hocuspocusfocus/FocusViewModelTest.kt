@@ -118,21 +118,32 @@ class FocusViewModelTest {
 
     @Test
     fun `defaults to 30 minutes`() = runTest(dispatcher) {
-        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
+        assertEquals(DEFAULT_FOCUS_DURATION_SECONDS, newViewModel().durationSeconds.value)
     }
 
     @Test
     fun `stepping the duration walks the list and stops at the ends`() = runTest(dispatcher) {
         val vm = newViewModel()
         vm.stepDuration(1)
-        assertEquals(60, vm.durationMinutes.value)
+        assertEquals(60 * 60, vm.durationSeconds.value)
         vm.stepDuration(-2)
-        assertEquals(20, vm.durationMinutes.value)
+        assertEquals(20 * 60, vm.durationSeconds.value)
 
         vm.stepDuration(-100)
-        assertEquals(FOCUS_DURATIONS_MINUTES.first(), vm.durationMinutes.value)
+        assertEquals(FOCUS_DURATIONS_SECONDS.first(), vm.durationSeconds.value)
         vm.stepDuration(100)
-        assertEquals(FOCUS_DURATIONS_MINUTES.last(), vm.durationMinutes.value)
+        assertEquals(FOCUS_DURATIONS_SECONDS.last(), vm.durationSeconds.value)
+    }
+
+    @Test
+    fun `debug builds offer a 10 second session`() {
+        assertEquals(10, FOCUS_DURATIONS_SECONDS.first())
+    }
+
+    @Test
+    fun `a duration saved in minutes by an older version is kept`() = runTest(dispatcher) {
+        prefs.edit { putInt("duration_minutes", 90) }
+        assertEquals(90 * 60, newViewModel().durationSeconds.value)
     }
 
     @Test
@@ -149,13 +160,13 @@ class FocusViewModelTest {
     @Test
     fun `the selected duration is remembered`() = runTest(dispatcher) {
         newViewModel().stepDuration(2)
-        assertEquals(90, newViewModel().durationMinutes.value)
+        assertEquals(90 * 60, newViewModel().durationSeconds.value)
     }
 
     @Test
     fun `an unknown saved duration falls back to the default`() = runTest(dispatcher) {
-        prefs.edit { putInt("duration_minutes", 7) }
-        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
+        prefs.edit { putInt("duration_seconds", 7) }
+        assertEquals(DEFAULT_FOCUS_DURATION_SECONDS, newViewModel().durationSeconds.value)
     }
 
     @Test
@@ -205,6 +216,6 @@ class FocusViewModelTest {
 
     private companion object {
         const val START_TIME = 1_000_000_000_000L
-        const val DEFAULT_DURATION_MILLIS = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L
+        const val DEFAULT_DURATION_MILLIS = DEFAULT_FOCUS_DURATION_SECONDS * 1000L
     }
 }

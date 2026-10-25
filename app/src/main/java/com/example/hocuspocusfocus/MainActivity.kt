@@ -72,7 +72,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             HocusPocusFocusTheme {
                 val remainingMillis by viewModel.remainingMillis.collectAsStateWithLifecycle()
-                val durationMinutes by viewModel.durationMinutes.collectAsStateWithLifecycle()
+                val durationSeconds by viewModel.durationSeconds.collectAsStateWithLifecycle()
                 val alarmSound by viewModel.alarmSound.collectAsStateWithLifecycle()
                 var isDeviceOwner by remember { mutableStateOf(focusLock.isDeviceOwner) }
                 var showSettings by rememberSaveable { mutableStateOf(false) }
@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                 } else {
                     FocusScreen(
                         remainingMillis = remainingMillis,
-                        durationMinutes = durationMinutes,
+                        durationSeconds = durationSeconds,
                         onStepDuration = viewModel::stepDuration,
                         onStart = viewModel::start,
                         onStop = viewModel::stop,
