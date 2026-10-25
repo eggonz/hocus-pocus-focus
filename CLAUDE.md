@@ -36,3 +36,16 @@ The lock is driven by the timer state, not by button handlers:
 - `ui/SettingsScreen.kt` shows the alarm sound (picked with the system `ACTION_RINGTONE_PICKER`, launched by `MainActivity`), the lock strength with the "Remove device owner" button or the soft-lock warning, and `BuildConfig.VERSION_NAME`. `MainActivity` switches to it with a `showSettings` flag, only while no session runs.
 
 System bars are intentionally left visible during a session: lock task mode already empties them, and hiding them makes Android show a misleading "swipe down to exit" hint.
+
+## Code style
+
+Code you write should read like the code already here: clear first, clever never.
+
+- **Kotlin:** follow the official Kotlin style. Lines stay within 120 columns (`.editorconfig`); multi-line argument and parameter lists use trailing commas. Prefer `val`, immutable state and expression bodies where they read naturally.
+- **Names** say what a thing is or does, in full words (`remainingMillis`, not `rem`); booleans read as questions (`isDeviceOwner`).
+- **Comments** explain *why* (a platform quirk, a non-obvious constraint), not *what* the code already says; keep them short. Public classes and functions get a one-line KDoc. No commented-out code, TODOs without context, or leftover debug logging.
+- **Compose:** screens in `ui/` stay stateless (values in, callbacks out); state lives in `FocusViewModel` or is hoisted to `MainActivity`. Each screen has `@Preview`s. User-visible text goes in `strings.xml` and colors come from the theme, never hard-coded.
+- **Scope:** make the smallest change that does the job. Reuse existing helpers before adding new ones; don't add abstractions, options or dependencies the task doesn't need; remove imports, resources and code that a change leaves unused.
+- **Warnings:** fix lint and compiler warnings instead of suppressing them. If a suppression is unavoidable, scope it to the narrowest element and say why on the same line (as in `FocusLock.releaseDeviceOwner`).
+- **Tests:** a change to `FocusViewModel` behavior comes with unit tests; inject time, I/O and side effects (like `now` and `playAlarm`) so tests stay deterministic.
+- **Done means checked:** run `./scripts/check.sh` before calling a change finished, and update this file and README.md when behavior or architecture changes.
