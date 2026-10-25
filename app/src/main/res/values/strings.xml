@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Hocus Pocus Focus</string>
+    <string name="start">START</string>
+    <string name="start_duration">30 min</string>
+    <string name="stop">Stop</string>
+    <string name="focus_label">Focus</string>
+    <string name="soft_lock_warning">Not device owner: using screen pinning, which can be undone with the unpin gesture. See README to enable the full lock.</string>
+    <string name="remove_device_owner">Remove device owner</string>
+    <string name="remove_device_owner_message">Focus mode will fall back to screen pinning, and the app can be uninstalled normally. Re-enabling requires adb.</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
+</resources>
