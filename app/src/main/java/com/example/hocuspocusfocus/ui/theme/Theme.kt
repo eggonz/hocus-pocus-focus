@@ -1,36 +1,40 @@
 package com.example.hocuspocusfocus.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
-private val Purple = Color(0xFF5B3A8C)
-private val PurpleLight = Color(0xFFCDB8F0)
-private val Amber = Color(0xFFFFD54F)
+/** The night sky behind the screen; also the window background in themes.xml. */
+val Night = Color(0xFF140B22)
 
-private val LightColors = lightColorScheme(primary = Purple, secondary = Amber)
-private val DarkColors = darkColorScheme(primary = PurpleLight, secondary = Amber)
+/** The violet glow at the center of the screen. */
+val Glow = Color(0xFF3B2266)
 
-/** Material 3 theme, using the wallpaper-based dynamic colors where available (Android 12+). */
+private val Amber = Color(0xFFFFC94D)
+private val Lavender = Color(0xFFCDB8F0)
+
+private val Colors = darkColorScheme(
+    primary = Amber,
+    onPrimary = Color(0xFF2E1A47),
+    secondary = Lavender,
+    onSecondary = Color(0xFF2E1A47),
+    background = Night,
+    onBackground = Color(0xFFF3EDFF),
+    surface = Night,
+    onSurface = Color(0xFFF3EDFF),
+    surfaceVariant = Color(0xFF2A1D40),
+    onSurfaceVariant = Color(0xFFB9AACF),
+    surfaceContainerHigh = Color(0xFF241835),
+    outline = Color(0xFF5E4B7D),
+    outlineVariant = Color(0xFF3A2C52),
+)
+
+/**
+ * Material 3 theme with the app's own dark palette (violet night, amber accents) in both system
+ * themes, so the screen stays dim during a session.
+ */
 @Composable
-fun HocusPocusFocusTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
-    val colorScheme = when {
-        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+fun HocusPocusFocusTheme(content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = Colors, typography = AppTypography, content = content)
 }

@@ -9,6 +9,7 @@ Built with Kotlin and Jetpack Compose.
 - **Big START button** starts focus mode with a countdown timer.
 - **Duration picker** under the button: −/+ step through 5, 10, 15, 20 and 30 min, 1 h, 1.5 h, 2 h and 3 h (30 min by default; the last choice is remembered).
 - **Small STOP button** ends focus mode early.
+- **Countdown ring** shows how much of the session is left.
 - **While focus mode is active, the app blocks:**
   - Navigation bar: Home, Back, Recents (and gesture navigation)
   - Top bar: pulling down the notification shade and quick settings (full lock only)
@@ -18,6 +19,7 @@ Built with Kotlin and Jetpack Compose.
   See [How it works](#how-it-works) for the difference between the full and soft lock.
 - The screen stays on during a session.
 - When the timer reaches 0, focus mode ends and the phone works normally again.
+- A dark violet and amber look in both the light and dark system themes, set in [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [DM Sans](https://github.com/googlefonts/dm-fonts) (bundled, SIL Open Font License, see `licenses/`).
 
 ## How it works
 
@@ -128,7 +130,10 @@ app/src/main/java/com/example/hocuspocusfocus/
 ├── FocusAdminReceiver.kt  # Device admin component targeted by `dpm set-device-owner`
 └── ui/
     ├── FocusScreen.kt     # START button, duration picker, countdown and STOP button
-    └── theme/Theme.kt     # Material 3 theme
+    └── theme/
+        ├── Theme.kt       # Material 3 theme: the app's own dark palette
+        └── Type.kt        # Typography from the bundled fonts in res/font
 app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, countdown formatting)
 scripts/check.sh                                # CI checks, also run by .githooks/pre-push
+licenses/                                       # Licenses of the bundled fonts
 ```

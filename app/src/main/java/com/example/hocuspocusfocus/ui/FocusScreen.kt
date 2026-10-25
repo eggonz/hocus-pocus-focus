@@ -1,11 +1,14 @@
 package com.example.hocuspocusfocus.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -14,6 +17,8 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,8 +33,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +47,10 @@ import androidx.compose.ui.unit.sp
 import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_MINUTES
 import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
 import com.example.hocuspocusfocus.R
+import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
+import com.example.hocuspocusfocus.ui.theme.Glow
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
+import com.example.hocuspocusfocus.ui.theme.Night
 
 /**
  * Shows the big START button and the [durationMinutes] picker when [remainingMillis] is null, and
@@ -58,6 +70,7 @@ fun FocusScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Brush.radialGradient(listOf(Glow, Night)))
                 .safeDrawingPadding()
                 .padding(24.dp),
             contentAlignment = Alignment.Center,
@@ -65,7 +78,7 @@ fun FocusScreen(
             if (remainingMillis == null) {
                 IdleContent(durationMinutes, isDeviceOwner, onStepDuration, onStart, onRemoveDeviceOwner)
             } else {
-                FocusContent(remainingMillis, onStop)
+                FocusContent(remainingMillis, durationMinutes, onStop)
             }
         }
     }
@@ -86,10 +99,22 @@ private fun IdleContent(
             modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Button(onClick = onStart, shape = CircleShape, modifier = Modifier.size(260.dp)) {
-                Text(stringResource(R.string.start), fontSize = 44.sp, fontWeight = FontWeight.Bold)
+            Button(
+                onClick = onStart,
+                shape = CircleShape,
+                modifier = Modifier
+                    .size(240.dp)
+                    .shadow(48.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary),
+            ) {
+                Text(
+                    stringResource(R.string.start),
+                    fontFamily = DisplayFontFamily,
+                    fontSize = 44.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 4.sp,
+                )
             }
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(40.dp))
             DurationPicker(durationMinutes, onStepDuration)
         }
 
@@ -98,7 +123,10 @@ private fun IdleContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (isDeviceOwner) {
-                TextButton(onClick = { confirmRemoval = true }) {
+                TextButton(
+                    onClick = { confirmRemoval = true },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                ) {
                     Text(stringResource(R.string.remove_device_owner))
                 }
             } else {
@@ -107,6 +135,7 @@ private fun IdleContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
+                    modifier = Modifier.widthIn(max = 320.dp),
                 )
             }
         }
@@ -132,7 +161,12 @@ private fun IdleContent(
 
 @Composable
 private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+            .padding(4.dp),
+    ) {
         IconButton(
             onClick = { onStepDuration(-1) },
             enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.first(),
@@ -141,7 +175,7 @@ private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) ->
         }
         Text(
             text = formatDuration(durationMinutes),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
             textAlign = TextAlign.Center,
             // Wide enough for the longest label, so the buttons don't move as it changes
             modifier = Modifier.widthIn(min = 112.dp),
@@ -156,26 +190,48 @@ private fun DurationPicker(durationMinutes: Int, onStepDuration: (steps: Int) ->
 }
 
 @Composable
-private fun FocusContent(remainingMillis: Long, onStop: () -> Unit) {
+private fun FocusContent(remainingMillis: Long, durationMinutes: Int, onStop: () -> Unit) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = stringResource(R.string.focus_label),
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        val countdown = formatCountdown(remainingMillis)
-        Text(
-            text = countdown,
-            // h:mm:ss needs a smaller size to fit the screen width
-            fontSize = if (countdown.length > 5) 72.sp else 96.sp,
-            fontWeight = FontWeight.Light,
-        )
+        Box(
+            modifier = Modifier
+                .widthIn(max = 320.dp)
+                .fillMaxWidth()
+                .aspectRatio(1f),
+            contentAlignment = Alignment.Center,
+        ) {
+            // The picker is hidden during a session, so durationMinutes is still the session length
+            CircularProgressIndicator(
+                progress = { (remainingMillis / (durationMinutes * 60_000f)).coerceIn(0f, 1f) },
+                modifier = Modifier.fillMaxSize(),
+                strokeWidth = 6.dp,
+                trackColor = MaterialTheme.colorScheme.outlineVariant,
+                strokeCap = StrokeCap.Round,
+                gapSize = 0.dp,
+            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = stringResource(R.string.focus_label).uppercase(),
+                    style = MaterialTheme.typography.labelLarge,
+                    letterSpacing = 6.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
+                val countdown = formatCountdown(remainingMillis)
+                Text(
+                    text = countdown,
+                    // Tabular figures, so the digits don't shift as they tick
+                    style = TextStyle(fontFamily = DisplayFontFamily, fontFeatureSettings = "tnum"),
+                    // h:mm:ss needs a smaller size to fit inside the ring
+                    fontSize = if (countdown.length > 5) 56.sp else 76.sp,
+                    fontWeight = FontWeight.Light,
+                )
+            }
+        }
         Spacer(Modifier.height(48.dp))
-        OutlinedButton(onClick = onStop) {
-            Text(stringResource(R.string.stop))
+        OutlinedButton(onClick = onStop, modifier = Modifier.widthIn(min = 140.dp)) {
+            Text(stringResource(R.string.stop), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
