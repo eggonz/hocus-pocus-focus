@@ -19,7 +19,8 @@ Use the version in the arguments (`$ARGUMENTS`). If none was given, read the cur
 Run `.claude/skills/release/bump.sh <version>`. It:
 
 - Stops with exit 2, changing nothing, if not on `master`, the tree is dirty, the tag exists, `origin/master` is ahead, or `signing.env` is missing. Report the reason to the user; don't fix it on your own (don't stash, pull or commit their changes).
-- Exits 1 on a bad or non-increasing version, or if the signed build fails. On a build failure, revert the bump with `git checkout app/build.gradle.kts` and report the error.
+- Doesn't bump if `versionName` already equals the version (only possible when it was never tagged, e.g. the first release); then the release commit is the current `HEAD`.
+- Exits 1 on a bad or older version, or if the signed build fails. On a build failure, revert the bump with `git checkout app/build.gradle.kts` and report the error.
 - Otherwise sets `versionName`, increments `versionCode` and builds a signed release APK locally, so the CI release won't fail on build or signing.
 
 ## 3. Commit, tag, push
@@ -31,6 +32,8 @@ git commit -am "Release v<version>"   # plus the Co-Authored-By trailer
 git tag -a v<version> -m "v<version>"
 git push origin master v<version>
 ```
+
+If the bump wasn't needed, skip the commit and tag `HEAD`.
 
 If the push fails, leave the commit and tag in place and tell the user what failed; don't force-push or delete the tag.
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: bump.sh <version>   e.g. bump.sh 0.2.0
-# Checks the repo is ready to release, sets versionName to <version> and increments versionCode,
+# Checks the repo is ready to release, sets versionName to <version> and increments versionCode
+# (unless versionName is already <version> and never tagged, e.g. the first release),
 # then builds a signed release APK with signing.env to make sure the release workflow will succeed.
 # Exit codes: 1 bad input or build failure, 2 repo not ready (nothing changed).
 set -euo pipefail
@@ -40,14 +41,17 @@ fi
 
 old_name=$(sed -n 's/^ *versionName = "\(.*\)"/\1/p' "$gradle_file")
 old_code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' "$gradle_file")
-if [[ $(printf '%s\n%s\n' "$old_name" "$version" | sort -V | tail -1) != "$version" || $old_name == "$version" ]]; then
+if [[ $old_name == "$version" ]]; then
+  # The tag doesn't exist (checked above), so this version was never released: release it as is
+  echo "versionName is already $version, not bumping"
+elif [[ $(printf '%s\n%s\n' "$old_name" "$version" | sort -V | tail -1) != "$version" ]]; then
   echo "error: $version is not newer than the current versionName $old_name" >&2
   exit 1
+else
+  new_code=$((old_code + 1))
+  sed -i "s/^\( *versionName = \)\".*\"/\1\"$version\"/; s/^\( *versionCode = \)[0-9]*$/\1$new_code/" "$gradle_file"
+  echo "versionName $old_name -> $version, versionCode $old_code -> $new_code"
 fi
-new_code=$((old_code + 1))
-
-sed -i "s/^\( *versionName = \)\".*\"/\1\"$version\"/; s/^\( *versionCode = \)[0-9]*$/\1$new_code/" "$gradle_file"
-echo "versionName $old_name -> $version, versionCode $old_code -> $new_code"
 
 set -a; . ./signing.env; set +a
 ./gradlew -q assembleRelease
