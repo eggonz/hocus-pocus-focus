@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.claude/skills/run/run.sh:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(./gradlew lint:*)",
+      "Bash(./gradlew tasks:*)",
+      "Bash(./gradlew dependencies:*)",
+      "Bash(adb devices:*)",
+      "Bash(adb install:*)",
+      "Bash(adb logcat:*)",
+      "Bash(adb shell am start:*)",
+      "Bash(adb shell am force-stop com.example.hocuspocusfocus)",
+      "Bash(adb shell dumpsys activity activities:*)",
+      "Bash(adb shell dpm list-owners)",
+      "Bash(adb shell getprop:*)",
+      "Bash(adb shell pm list packages:*)",
+      "Bash(adb exec-out screencap:*)"
+    ],
+    "ask": [
+      "Bash(adb shell dpm set-device-owner:*)",
+      "Bash(adb shell dpm set-profile-owner:*)",
+      "Bash(adb shell dpm set-active-admin:*)",
+      "Bash(adb shell dpm remove-active-admin:*)",
+      "Bash(adb uninstall:*)",
+      "Bash(adb shell pm uninstall:*)",
+      "Bash(adb shell pm clear:*)"
+    ]
+  }
+}
