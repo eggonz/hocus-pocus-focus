@@ -166,7 +166,7 @@ class FocusViewModelTest {
         assertEquals(emptyList<Uri>(), playedAlarms)
 
         advanceBy(1)
-        assertEquals(listOf(Settings.System.DEFAULT_ALARM_ALERT_URI), playedAlarms)
+        assertEquals(listOf(Settings.System.DEFAULT_NOTIFICATION_URI), playedAlarms)
     }
 
     @Test

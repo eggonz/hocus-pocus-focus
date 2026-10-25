@@ -18,9 +18,9 @@ Built with Kotlin and Jetpack Compose.
 
   See [How it works](#how-it-works) for the difference between the full and soft lock.
 - The screen stays on during a session.
-- When the timer reaches 0, focus mode ends, the alarm sound plays once, and the phone works normally again. Stopping early plays nothing.
+- When the timer reaches 0, focus mode ends, a short alarm sound plays once, and the phone works normally again. Stopping early plays nothing.
 - **Settings** (gear button, top left of the start screen; not reachable during a session):
-  - **Alarm sound:** picked with the system sound picker (the default alarm sound unless changed; Silent turns it off). It plays at alarm volume.
+  - **Alarm sound:** picked with the system sound picker from the notification sounds (the default notification sound unless changed; Silent turns it off). It plays at alarm volume and is cut off after 4 seconds, so a long sound stays a short notice.
   - **Lock:** whether the app has the full lock (device owner, with the **Remove device owner** button) or the soft lock.
   - The app version.
 - A dark violet and amber look in both the light and dark system themes, set in [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [DM Sans](https://github.com/googlefonts/dm-fonts) (bundled, SIL Open Font License, see `licenses/`).

@@ -109,10 +109,10 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun alarmSoundPickerIntent(current: Uri?) = Intent(RingtoneManager.ACTION_RINGTONE_PICKER)
-        .putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_ALARM)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, RingtoneManager.TYPE_NOTIFICATION)
         .putExtra(RingtoneManager.EXTRA_RINGTONE_TITLE, getString(R.string.alarm_sound))
         .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_DEFAULT, true)
-        .putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, Settings.System.DEFAULT_ALARM_ALERT_URI)
+        .putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, Settings.System.DEFAULT_NOTIFICATION_URI)
         .putExtra(RingtoneManager.EXTRA_RINGTONE_SHOW_SILENT, true)
         .putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, current)
 

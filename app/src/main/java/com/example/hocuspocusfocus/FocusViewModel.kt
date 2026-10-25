@@ -49,10 +49,10 @@ class FocusViewModel(
     /** Length of the next session, one of [FOCUS_DURATIONS_MINUTES]. Remembered across launches. */
     val durationMinutes: StateFlow<Int> = _durationMinutes.asStateFlow()
 
-    // Saved as "" for silent; never chosen means the system's default alarm sound
+    // Saved as "" for silent; never chosen means the system's default notification sound, which is short
     private val _alarmSound = MutableStateFlow(
         when (val saved = prefs.getString(KEY_ALARM_SOUND, null)) {
-            null -> Settings.System.DEFAULT_ALARM_ALERT_URI
+            null -> Settings.System.DEFAULT_NOTIFICATION_URI
             "" -> null
             else -> saved.toUri()
         },

@@ -133,7 +133,7 @@ private fun SettingRow(title: String, modifier: Modifier = Modifier, content: @C
 private fun SettingsPreview() {
     HocusPocusFocusTheme {
         SettingsScreen(
-            alarmSoundTitle = "Default (Morning Glory)",
+            alarmSoundTitle = "Default (Spaceline)",
             isDeviceOwner = true,
             versionName = "0.1.1",
             onPickAlarmSound = {},
