@@ -1,4 +1,5 @@
 {
+  "respectGitignore": true,
   "permissions": {
     "allow": [
       "Bash(.claude/skills/run/run.sh:*)",
