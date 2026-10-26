@@ -16,8 +16,8 @@ android {
         // 28: DevicePolicyManager.setLockTaskFeatures, which turns off the power menu and status bar
         minSdk = 28
         targetSdk = 37
-        versionCode = 3
-        versionName = "0.2.0"
+        versionCode = 4
+        versionName = "0.3.0"
     }
 
     // Release signing comes from the environment (set by the release workflow); without it the release APK is unsigned
