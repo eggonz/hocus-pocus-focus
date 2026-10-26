@@ -18,6 +18,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -35,13 +36,20 @@ import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 
-/** The alarm sound, the lock strength (with device-owner removal) and the app version. */
+/**
+ * The alarm sound, the lock strength (with device-owner removal, or else the "always use the app guard" toggle)
+ * and the app version.
+ */
 @Composable
 fun SettingsScreen(
     alarmSoundTitle: String,
     isDeviceOwner: Boolean,
+    alwaysUseAppGuard: Boolean,
+    isAppGuardOn: Boolean,
     versionName: String,
     onPickAlarmSound: () -> Unit,
+    onAlwaysUseAppGuardChange: (Boolean) -> Unit,
+    onTurnOnAppGuard: () -> Unit,
     onRemoveDeviceOwner: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -86,6 +94,25 @@ fun SettingsScreen(
                         }
                     }
                 }
+
+                // As device owner the lock is full either way, so there's nothing to choose
+                if (!isDeviceOwner) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    SettingRow(
+                        title = stringResource(R.string.always_use_app_guard),
+                        modifier = Modifier.clickable { onAlwaysUseAppGuardChange(!alwaysUseAppGuard) },
+                        action = { Switch(checked = alwaysUseAppGuard, onCheckedChange = onAlwaysUseAppGuardChange) },
+                    ) {
+                        Text(
+                            stringResource(R.string.always_use_app_guard_description),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (alwaysUseAppGuard && !isAppGuardOn) {
+                            TextButton(onClick = onTurnOnAppGuard) { Text(stringResource(R.string.turn_on)) }
+                        }
+                    }
+                }
             }
 
             Text(
@@ -116,15 +143,27 @@ fun SettingsScreen(
 }
 
 @Composable
-private fun SettingRow(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Column(
+private fun SettingRow(
+    title: String,
+    modifier: Modifier = Modifier,
+    action: (@Composable () -> Unit)? = null,
+    content: @Composable () -> Unit,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 24.dp, vertical = 16.dp),
     ) {
-        Text(title, style = MaterialTheme.typography.titleMedium)
-        Spacer(Modifier.height(4.dp))
-        content()
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(4.dp))
+            content()
+        }
+        if (action != null) {
+            Spacer(Modifier.width(16.dp))
+            action()
+        }
     }
 }
 
@@ -135,8 +174,31 @@ private fun SettingsPreview() {
         SettingsScreen(
             alarmSoundTitle = "Default (Spaceline)",
             isDeviceOwner = true,
+            alwaysUseAppGuard = false,
+            isAppGuardOn = false,
             versionName = "0.1.1",
             onPickAlarmSound = {},
+            onAlwaysUseAppGuardChange = {},
+            onTurnOnAppGuard = {},
+            onRemoveDeviceOwner = {},
+            onBack = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun SettingsSoftLockPreview() {
+    HocusPocusFocusTheme {
+        SettingsScreen(
+            alarmSoundTitle = "Default (Spaceline)",
+            isDeviceOwner = false,
+            alwaysUseAppGuard = true,
+            isAppGuardOn = false,
+            versionName = "0.1.1",
+            onPickAlarmSound = {},
+            onAlwaysUseAppGuardChange = {},
+            onTurnOnAppGuard = {},
             onRemoveDeviceOwner = {},
             onBack = {},
         )

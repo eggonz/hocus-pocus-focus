@@ -11,6 +11,12 @@ import android.content.ComponentName
  * As device owner this is a full kiosk lock: no Home, Recents, notification shade, status bar
  * info or power menu, and no exit gesture. Otherwise [lock] falls back to screen pinning, which
  * asks the user to confirm and can be exited by holding Back + Recents.
+ *
+ * A session's allowed apps are opened into this app's task (see [MainActivity]), which both modes
+ * allow; as device owner they're also whitelisted, so apps that insist on their own task open too.
+ * Without device owner, a session with allowed apps isn't pinned while the [AppGuardService] is on,
+ * since pinning would block those apps; the guard keeps the phone to them instead. Sessions without
+ * allowed apps can skip pinning (and its "App is pinned" notice) the same way, if the user asks.
  */
 class FocusLock(private val activity: Activity) {
 
@@ -31,12 +37,22 @@ class FocusLock(private val activity: Activity) {
         dpm.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_NONE)
     }
 
-    fun lock() {
+    /**
+     * Locks the phone to this app and the [allowedApps] package names, with the app guard instead of screen pinning
+     * when there are allowed apps or [alwaysUseAppGuard].
+     */
+    fun lock(allowedApps: List<String>, alwaysUseAppGuard: Boolean) {
+        if (isDeviceOwner) {
+            dpm.setLockTaskPackages(admin, arrayOf(activity.packageName) + allowedApps)
+        } else if ((allowedApps.isNotEmpty() || alwaysUseAppGuard) && AppGuardService.isOn(activity)) {
+            return
+        }
         if (!isLocked) activity.startLockTask()
     }
 
     fun unlock() {
         if (isLocked) activity.stopLockTask()
+        applyPolicies()
     }
 
     /** Gives up device owner, so the app can be uninstalled normally again. */

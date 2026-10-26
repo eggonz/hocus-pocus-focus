@@ -118,32 +118,27 @@ class FocusViewModelTest {
 
     @Test
     fun `defaults to 30 minutes`() = runTest(dispatcher) {
-        assertEquals(DEFAULT_FOCUS_DURATION_SECONDS, newViewModel().durationSeconds.value)
+        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
     }
 
     @Test
     fun `stepping the duration walks the list and stops at the ends`() = runTest(dispatcher) {
         val vm = newViewModel()
         vm.stepDuration(1)
-        assertEquals(60 * 60, vm.durationSeconds.value)
+        assertEquals(60, vm.durationMinutes.value)
         vm.stepDuration(-2)
-        assertEquals(20 * 60, vm.durationSeconds.value)
+        assertEquals(20, vm.durationMinutes.value)
 
         vm.stepDuration(-100)
-        assertEquals(FOCUS_DURATIONS_SECONDS.first(), vm.durationSeconds.value)
+        assertEquals(FOCUS_DURATIONS_MINUTES.first(), vm.durationMinutes.value)
         vm.stepDuration(100)
-        assertEquals(FOCUS_DURATIONS_SECONDS.last(), vm.durationSeconds.value)
+        assertEquals(FOCUS_DURATIONS_MINUTES.last(), vm.durationMinutes.value)
     }
 
     @Test
-    fun `debug builds offer a 10 second session`() {
-        assertEquals(10, FOCUS_DURATIONS_SECONDS.first())
-    }
-
-    @Test
-    fun `a duration saved in minutes by an older version is kept`() = runTest(dispatcher) {
-        prefs.edit { putInt("duration_minutes", 90) }
-        assertEquals(90 * 60, newViewModel().durationSeconds.value)
+    fun `a duration saved in seconds by an older version is kept`() = runTest(dispatcher) {
+        prefs.edit { putInt("duration_seconds", 90 * 60) }
+        assertEquals(90, newViewModel().durationMinutes.value)
     }
 
     @Test
@@ -160,13 +155,13 @@ class FocusViewModelTest {
     @Test
     fun `the selected duration is remembered`() = runTest(dispatcher) {
         newViewModel().stepDuration(2)
-        assertEquals(90 * 60, newViewModel().durationSeconds.value)
+        assertEquals(90, newViewModel().durationMinutes.value)
     }
 
     @Test
     fun `an unknown saved duration falls back to the default`() = runTest(dispatcher) {
-        prefs.edit { putInt("duration_seconds", 7) }
-        assertEquals(DEFAULT_FOCUS_DURATION_SECONDS, newViewModel().durationSeconds.value)
+        prefs.edit { putInt("duration_minutes", 7) }
+        assertEquals(DEFAULT_FOCUS_DURATION_MINUTES, newViewModel().durationMinutes.value)
     }
 
     @Test
@@ -214,8 +209,134 @@ class FocusViewModelTest {
         assertEquals(listOf(sound), playedAlarms)
     }
 
+    @Test
+    fun `always using the app guard is off by default and remembered`() = runTest(dispatcher) {
+        assertEquals(false, newViewModel().alwaysUseAppGuard.value)
+        newViewModel().setAlwaysUseAppGuard(true)
+        assertEquals(true, newViewModel().alwaysUseAppGuard.value)
+    }
+
+    @Test
+    fun `starts with the one hour Morning routine`() = runTest(dispatcher) {
+        assertEquals(listOf(Routine(0, RoutineIcon.SUN, "Morning", 60)), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `an edited routine is remembered`() = runTest(dispatcher) {
+        val edited = Routine(0, RoutineIcon.BOOK, "Reading", 30)
+        newViewModel().updateRoutine(edited)
+        assertEquals(listOf(edited), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `an added routine gets a new id and is remembered`() = runTest(dispatcher) {
+        val added = newViewModel().addRoutine()
+        assertEquals(Routine(1, RoutineIcon.SUN, "", 60), added)
+        assertEquals(listOf(Routine(0, RoutineIcon.SUN, "Morning", 60), added), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `a deleted routine stays deleted`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        val added = vm.addRoutine()
+        vm.deleteRoutine(0)
+        assertEquals(listOf(added), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `a routine's allowed apps are remembered in order`() = runTest(dispatcher) {
+        val edited = Routine(0, RoutineIcon.SUN, "Morning", 60, listOf("com.example.b", "com.example.a"))
+        newViewModel().updateRoutine(edited)
+        assertEquals(listOf(edited), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `a routine saved before allowed apps existed has none`() = runTest(dispatcher) {
+        prefs.edit {
+            putString("routines", """[{"id":0,"icon":"MOON","title":"Night","duration_minutes":30}]""")
+        }
+        assertEquals(listOf(Routine(0, RoutineIcon.MOON, "Night", 30)), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `a routine counts down its own duration and is kept as the session routine`() = runTest(dispatcher) {
+        val routine = Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a"))
+        val vm = newViewModel()
+        vm.startRoutine(routine)
+        runCurrent()
+        assertEquals(5 * 60_000L, vm.remainingMillis.value)
+        assertEquals(routine, vm.sessionRoutine.value)
+
+        advanceBy(5 * 60_000L)
+        assertNull(vm.remainingMillis.value)
+        assertNull(vm.sessionRoutine.value)
+    }
+
+    @Test
+    fun `stopping a routine clears the session routine`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.startRoutine(vm.routines.value.first())
+        advanceBy(1_000)
+        vm.stop()
+        assertNull(vm.sessionRoutine.value)
+        assertNull(newViewModel().sessionRoutine.value)
+    }
+
+    @Test
+    fun `a plain session has no routine`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.startRoutine(vm.routines.value.first())
+        vm.stop()
+        vm.start()
+        runCurrent()
+        assertNull(vm.sessionRoutine.value)
+        assertNull(newViewModel().sessionRoutine.value)
+        vm.stop()
+    }
+
+    @Test
+    fun `a recreated view model resumes an ongoing routine`() = runTest(dispatcher) {
+        val first = newViewModel()
+        val routine = first.routines.value.first()
+        first.startRoutine(routine)
+        advanceBy(5_000)
+
+        val second = newViewModel()
+        runCurrent()
+        assertEquals(routine, second.sessionRoutine.value)
+        assertEquals(routine.durationMinutes * 60_000L - 5_000, second.remainingMillis.value)
+        first.stop()
+        second.stop()
+    }
+
+    private fun TestScope.savedAllowedApps() =
+        FocusViewModel.savedSessionAllowedApps(app, START_TIME + testScheduler.currentTime)
+
+    @Test
+    fun `the app guard sees a routine session's allowed apps until it ends`() = runTest(dispatcher) {
+        val routine = Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a"))
+        val vm = newViewModel()
+        vm.updateRoutine(routine)
+        assertNull(savedAllowedApps())
+
+        vm.startRoutine(routine)
+        assertEquals(listOf("com.example.a"), savedAllowedApps())
+        advanceBy(5 * 60_000L)
+        assertNull(savedAllowedApps())
+    }
+
+    @Test
+    fun `the app guard sees no allowed apps in a plain session`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.updateRoutine(Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a")))
+        vm.start()
+        assertEquals(emptyList<String>(), savedAllowedApps())
+        vm.stop()
+        assertNull(savedAllowedApps())
+    }
+
     private companion object {
         const val START_TIME = 1_000_000_000_000L
-        const val DEFAULT_DURATION_MILLIS = DEFAULT_FOCUS_DURATION_SECONDS * 1000L
+        const val DEFAULT_DURATION_MILLIS = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L
     }
 }

@@ -1,9 +1,11 @@
 package com.example.hocuspocusfocus.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -15,6 +17,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -24,22 +29,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_SECONDS
-import com.example.hocuspocusfocus.FOCUS_DURATIONS_SECONDS
+import com.example.hocuspocusfocus.DEFAULT_FOCUS_DURATION_MINUTES
+import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.Glow
@@ -47,31 +61,53 @@ import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 import com.example.hocuspocusfocus.ui.theme.Night
 
 /**
- * Shows the big START button, the [durationSeconds] picker and the settings button when
- * [remainingMillis] is null, and the countdown otherwise.
+ * Shows the big START button, the [durationMinutes] picker and the settings and routines buttons
+ * when [remainingMillis] is null (or, when [showAppGuardPrompt], a prompt to turn on the app guard
+ * instead of all but the settings button), and otherwise the countdown of a [durationMinutes]
+ * session with the [allowedApps] it can open, which are greyed out and can't be tapped or scrolled unless
+ * [canOpenApps].
  */
 @Composable
 fun FocusScreen(
     remainingMillis: Long?,
-    durationSeconds: Int,
+    durationMinutes: Int,
     onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenRoutines: () -> Unit,
+    allowedApps: List<InstalledApp>,
+    onOpenApp: (InstalledApp) -> Unit,
+    canOpenApps: Boolean = true,
+    showAppGuardPrompt: Boolean = false,
+    onTurnOnAppGuard: () -> Unit = {},
 ) {
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.radialGradient(listOf(Glow, Night)))
                 .safeDrawingPadding()
-                .padding(24.dp),
+                .padding(24.dp)
+                // Centered on the content, where START and the countdown sit, not on the whole screen, whose
+                // system bars differ in height; it fades into Night, so it can overflow the padding
+                .drawBehind {
+                    val radius = 180.dp.toPx()
+                    drawCircle(Brush.radialGradient(listOf(Glow, Night), center, radius), radius)
+                },
             contentAlignment = Alignment.Center,
         ) {
             if (remainingMillis == null) {
-                IdleContent(durationSeconds, onStepDuration, onStart, onOpenSettings)
+                IdleContent(
+                    durationMinutes,
+                    onStepDuration,
+                    onStart,
+                    onOpenSettings,
+                    onOpenRoutines,
+                    showAppGuardPrompt,
+                    onTurnOnAppGuard,
+                )
             } else {
-                FocusContent(remainingMillis, durationSeconds, onStop)
+                FocusContent(remainingMillis, durationMinutes, allowedApps, onOpenApp, canOpenApps, onStop)
             }
         }
     }
@@ -79,10 +115,13 @@ fun FocusScreen(
 
 @Composable
 private fun IdleContent(
-    durationSeconds: Int,
+    durationMinutes: Int,
     onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenRoutines: () -> Unit,
+    showAppGuardPrompt: Boolean,
+    onTurnOnAppGuard: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         IconButton(
@@ -97,55 +136,142 @@ private fun IdleContent(
             )
         }
 
+        // The prompt takes START's place, and the rest keeps its space so the prompt lines up with START
+        val hiddenForPrompt = if (showAppGuardPrompt) Modifier.unplaced() else Modifier
         Column(
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.SpaceEvenly,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Button(
-                onClick = onStart,
-                shape = CircleShape,
-                modifier = Modifier
-                    .size(240.dp)
-                    .shadow(48.dp, CircleShape, ambientColor = MaterialTheme.colorScheme.primary, spotColor = MaterialTheme.colorScheme.primary),
-            ) {
-                Text(
-                    stringResource(R.string.start),
-                    fontFamily = DisplayFontFamily,
-                    fontSize = 44.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 4.sp,
-                )
+            RoutinesButton(onOpenRoutines, hiddenForPrompt)
+            if (showAppGuardPrompt) {
+                Box(modifier = Modifier.height(START_BUTTON_DIAMETER), contentAlignment = Alignment.Center) {
+                    AppGuardPrompt(onTurnOnAppGuard)
+                }
+            } else {
+                StartButton(onStart)
             }
-            Spacer(Modifier.height(40.dp))
-            DurationPicker(durationSeconds, onStepDuration)
+            DurationPicker(durationMinutes, onStepDuration, hiddenForPrompt)
         }
     }
 }
 
+/** A pill the size of the [DurationPicker], so the controls above and below START match. */
 @Composable
-private fun DurationPicker(durationSeconds: Int, onStepDuration: (steps: Int) -> Unit) {
+private fun RoutinesButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
+    Surface(
+        onClick = onClick,
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        modifier = modifier,
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
+            // Same slots as the picker's buttons, so the label lines up with its duration
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                // The label already names the button
+                Icon(painterResource(R.drawable.ic_routines), contentDescription = null)
+            }
+            Text(
+                stringResource(R.string.routines),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.widthIn(min = PILL_LABEL_MIN_WIDTH),
+            )
+            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                Icon(
+                    painterResource(R.drawable.ic_chevron_right),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+// Measured but never placed, so it keeps its space without being drawn, tapped or read out
+private fun Modifier.unplaced() = layout { measurable, constraints ->
+    val placeable = measurable.measure(constraints)
+    layout(placeable.width, placeable.height) {}
+}
+
+@Composable
+private fun AppGuardPrompt(onTurnOnAppGuard: () -> Unit) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.widthIn(max = 320.dp),
+    ) {
+        Text(
+            stringResource(R.string.app_guard_required),
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        TextButton(onClick = onTurnOnAppGuard) { Text(stringResource(R.string.turn_on)) }
+    }
+}
+
+private val START_BUTTON_DIAMETER = 240.dp
+
+// Wide enough for the longest duration, and shared so the routines button matches the picker
+private val PILL_LABEL_MIN_WIDTH = 144.dp
+
+/** The glowing round START button, with its glow and label scaled to its [diameter]. */
+@Composable
+internal fun StartButton(onClick: () -> Unit, diameter: Dp = START_BUTTON_DIAMETER) {
+    val scale = diameter / START_BUTTON_DIAMETER
+    Button(
+        onClick = onClick,
+        shape = CircleShape,
+        // The label is sized to fit the circle, so the default side padding would only make it wrap
+        contentPadding = PaddingValues(0.dp),
+        modifier = Modifier
+            .size(diameter)
+            .shadow(
+                48.dp * scale,
+                CircleShape,
+                ambientColor = Glow,
+                spotColor = Glow,
+            ),
+    ) {
+        Text(
+            stringResource(R.string.start),
+            fontFamily = DisplayFontFamily,
+            fontSize = 44.sp * scale,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 4.sp * scale,
+            maxLines = 1,
+        )
+    }
+}
+
+@Composable
+private fun DurationPicker(
+    durationMinutes: Int,
+    onStepDuration: (steps: Int) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
+        modifier = modifier
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
             .padding(4.dp),
     ) {
         IconButton(
             onClick = { onStepDuration(-1) },
-            enabled = durationSeconds != FOCUS_DURATIONS_SECONDS.first(),
+            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.first(),
         ) {
             Icon(painterResource(R.drawable.ic_minus), stringResource(R.string.shorter))
         }
         Text(
-            text = formatDuration(durationSeconds),
+            text = formatDuration(durationMinutes),
             style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Medium),
             textAlign = TextAlign.Center,
             // Wide enough for the longest label, so the buttons don't move as it changes
-            modifier = Modifier.widthIn(min = 112.dp),
+            modifier = Modifier.widthIn(min = PILL_LABEL_MIN_WIDTH),
         )
         IconButton(
             onClick = { onStepDuration(1) },
-            enabled = durationSeconds != FOCUS_DURATIONS_SECONDS.last(),
+            enabled = durationMinutes != FOCUS_DURATIONS_MINUTES.last(),
         ) {
             Icon(painterResource(R.drawable.ic_plus), stringResource(R.string.longer))
         }
@@ -153,7 +279,14 @@ private fun DurationPicker(durationSeconds: Int, onStepDuration: (steps: Int) ->
 }
 
 @Composable
-private fun FocusContent(remainingMillis: Long, durationSeconds: Int, onStop: () -> Unit) {
+private fun FocusContent(
+    remainingMillis: Long,
+    durationMinutes: Int,
+    allowedApps: List<InstalledApp>,
+    onOpenApp: (InstalledApp) -> Unit,
+    canOpenApps: Boolean,
+    onStop: () -> Unit,
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -165,9 +298,8 @@ private fun FocusContent(remainingMillis: Long, durationSeconds: Int, onStop: ()
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center,
         ) {
-            // The picker is hidden during a session, so durationSeconds is still the session length
             CircularProgressIndicator(
-                progress = { (remainingMillis / (durationSeconds * 1000f)).coerceIn(0f, 1f) },
+                progress = { (remainingMillis / (durationMinutes * 60_000f)).coerceIn(0f, 1f) },
                 modifier = Modifier.fillMaxSize(),
                 strokeWidth = 6.dp,
                 trackColor = MaterialTheme.colorScheme.outlineVariant,
@@ -192,9 +324,56 @@ private fun FocusContent(remainingMillis: Long, durationSeconds: Int, onStop: ()
                 )
             }
         }
+        if (allowedApps.isNotEmpty()) {
+            Spacer(Modifier.height(32.dp))
+            AllowedAppsRow(allowedApps, onOpenApp, canOpenApps)
+        }
         Spacer(Modifier.height(48.dp))
         OutlinedButton(onClick = onStop, modifier = Modifier.widthIn(min = 140.dp)) {
             Text(stringResource(R.string.stop), style = MaterialTheme.typography.titleMedium)
+        }
+    }
+}
+
+/**
+ * The [allowedApps] in one line that scrolls sideways, fading out at the sides where apps are hidden, or greyed out
+ * and still unless [canOpenApps].
+ */
+@Composable
+private fun AllowedAppsRow(allowedApps: List<InstalledApp>, onOpenApp: (InstalledApp) -> Unit, canOpenApps: Boolean) {
+    val listState = rememberLazyListState()
+    LazyRow(
+        state = listState,
+        userScrollEnabled = canOpenApps,
+        horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+        modifier = Modifier
+            .widthIn(max = 290.dp)
+            .fillMaxWidth()
+            // Offscreen, so DstIn masks the icons alone and not the background behind them
+            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
+            .drawWithContent {
+                drawContent()
+                val fadeWidth = APP_ICON_SIZE.toPx()
+                if (listState.canScrollBackward) {
+                    drawRect(
+                        Brush.horizontalGradient(listOf(Color.Transparent, Color.Black), endX = fadeWidth),
+                        blendMode = BlendMode.DstIn,
+                    )
+                }
+                if (listState.canScrollForward) {
+                    drawRect(
+                        Brush.horizontalGradient(
+                            listOf(Color.Black, Color.Transparent),
+                            startX = size.width - fadeWidth,
+                            endX = size.width,
+                        ),
+                        blendMode = BlendMode.DstIn,
+                    )
+                }
+            },
+    ) {
+        items(allowedApps) { app ->
+            AppIcon(app, Modifier.clickable(enabled = canOpenApps) { onOpenApp(app) }, isEnabled = canOpenApps)
         }
     }
 }
@@ -211,12 +390,11 @@ internal fun formatCountdown(millis: Long): String {
     return if (hours > 0) "%d:%02d:%02d".format(hours, minutes, seconds) else "%02d:%02d".format(minutes, seconds)
 }
 
-/** Formats a picker duration as 5 min, 1 h or 1.5 h. */
-internal fun formatDuration(seconds: Int): String = when {
-    seconds < 60 -> "$seconds s"
-    seconds < 3600 -> "${seconds / 60} min"
-    seconds % 3600 == 0 -> "${seconds / 3600} h"
-    else -> "${seconds / 3600.0} h"
+/** Formats a picker duration as 5 min, 1 h or 1 h 35 min. */
+internal fun formatDuration(minutes: Int): String = when {
+    minutes < 60 -> "$minutes min"
+    minutes % 60 == 0 -> "${minutes / 60} h"
+    else -> "${minutes / 60} h ${minutes % 60} min"
 }
 
 @Preview(showBackground = true)
@@ -225,11 +403,88 @@ private fun IdlePreview() {
     HocusPocusFocusTheme {
         FocusScreen(
             remainingMillis = null,
-            durationSeconds = DEFAULT_FOCUS_DURATION_SECONDS,
+            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
             onStepDuration = {},
             onStart = {},
             onStop = {},
             onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = emptyList(),
+            onOpenApp = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppGuardPromptPreview() {
+    HocusPocusFocusTheme {
+        FocusScreen(
+            remainingMillis = null,
+            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = emptyList(),
+            onOpenApp = {},
+            showAppGuardPrompt = true,
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun RoutineFocusPreview() {
+    HocusPocusFocusTheme {
+        FocusScreen(
+            remainingMillis = 60 * 60_000L,
+            durationMinutes = 60,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = previewApps(),
+            onOpenApp = {},
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AppsBlockedFocusPreview() {
+    HocusPocusFocusTheme {
+        FocusScreen(
+            remainingMillis = 60 * 60_000L,
+            durationMinutes = 60,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = List(4) { previewApps() }.flatten(),
+            onOpenApp = {},
+            canOpenApps = false,
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ManyAppsFocusPreview() {
+    HocusPocusFocusTheme {
+        FocusScreen(
+            remainingMillis = 60 * 60_000L,
+            durationMinutes = 60,
+            onStepDuration = {},
+            onStart = {},
+            onStop = {},
+            onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = List(4) { previewApps() }.flatten(),
+            onOpenApp = {},
         )
     }
 }
@@ -239,12 +494,15 @@ private fun IdlePreview() {
 private fun FocusPreview() {
     HocusPocusFocusTheme {
         FocusScreen(
-            remainingMillis = DEFAULT_FOCUS_DURATION_SECONDS * 1000L,
-            durationSeconds = DEFAULT_FOCUS_DURATION_SECONDS,
+            remainingMillis = DEFAULT_FOCUS_DURATION_MINUTES * 60_000L,
+            durationMinutes = DEFAULT_FOCUS_DURATION_MINUTES,
             onStepDuration = {},
             onStart = {},
             onStop = {},
             onOpenSettings = {},
+            onOpenRoutines = {},
+            allowedApps = emptyList(),
+            onOpenApp = {},
         )
     }
 }
