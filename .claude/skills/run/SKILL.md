@@ -1,6 +1,7 @@
 ---
 name: run
-description: Build, install and launch Hocus Pocus Focus on the connected Android device, then check it's running. Use when asked to run the app, try a change on the phone, or debug behavior on the device.
+description: Build, install and launch Hocus Pocus Focus on the connected Android device, then check it's running.
+disable-model-invocation: true
 allowed-tools: Bash(.claude/skills/run/run.sh:*), Bash(adb devices:*), Bash(adb logcat:*), Bash(adb shell dpm list-owners), Bash(adb shell dumpsys activity activities:*), Bash(adb exec-out screencap:*)
 ---
 

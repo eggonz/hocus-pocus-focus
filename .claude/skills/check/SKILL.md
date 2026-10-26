@@ -20,4 +20,4 @@ Rerun the whole script after fixing, then report what failed and what you change
 
 - JVM tests live in `app/src/test`. Robolectric supplies the `Application` and a fresh SharedPreferences for each test.
 - `FocusViewModel` takes a `now: () -> Long` clock. Tests pass one built on the test dispatcher's virtual time, so `advanceTimeBy` moves the countdown and the persisted end time together; don't use real time or `Thread.sleep`.
-- Lock task mode, device owner and key handling can't be tested on the JVM; check those on the phone with `/run`.
+- Lock task mode, device owner and key handling can't be tested on the JVM; the user checks those on the phone with `/run`.

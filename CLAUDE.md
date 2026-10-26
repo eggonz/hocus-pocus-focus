@@ -19,7 +19,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk      # install on a dev
 adb shell dpm set-device-owner com.example.hocuspocusfocus/.FocusAdminReceiver  # enable full lock (device must have no accounts)
 ```
 
-CI (`.github/workflows/ci.yml`) runs `scripts/check.sh` on pushes to `master` and PRs; so does `.githooks/pre-push` once enabled with `git config core.hooksPath .githooks` (the `/check` skill runs it too). Pushing a `v<versionName>` tag runs `release.yml` (which doesn't run the checks itself), which signs the release APK from repo secrets (passed to Gradle as `SIGNING_*` env vars, see README.md) and publishes a GitHub release; bump `versionName`/`versionCode` before tagging (the `/release` skill does all of this, and won't bump or tag unless `scripts/check.sh` passes). Unit tests are in `app/src/test`; `FocusViewModel` takes a `now` clock so tests drive the countdown with virtual time. Lock task mode can't be unit tested, so check it on the device (`/run`). Dependencies are declared in `gradle/libs.versions.toml`; Compose artifacts take their versions from the Compose BOM, so don't add versions to them.
+CI (`.github/workflows/ci.yml`) runs `scripts/check.sh` on pushes to `master` and PRs; so does `.githooks/pre-push` once enabled with `git config core.hooksPath .githooks` (the `/check` skill runs it too). Pushing a `v<versionName>` tag runs `release.yml` (which doesn't run the checks itself), which signs the release APK from repo secrets (passed to Gradle as `SIGNING_*` env vars, see README.md) and publishes a GitHub release; bump `versionName`/`versionCode` before tagging (the `/release` skill does all of this, and won't bump or tag unless `scripts/check.sh` passes). Unit tests are in `app/src/test`; `FocusViewModel` takes a `now` clock so tests drive the countdown with virtual time. Lock task mode can't be unit tested; the user checks it on the device with `/run`. Dependencies are declared in `gradle/libs.versions.toml`; Compose artifacts take their versions from the Compose BOM, so don't add versions to them.
 
 ## Architecture
 
@@ -50,4 +50,9 @@ Code you write should read like the code already here: clear first, clever never
 - **Scope:** make the smallest change that does the job. Reuse existing helpers before adding new ones; don't add abstractions, options or dependencies the task doesn't need; remove imports, resources and code that a change leaves unused.
 - **Warnings:** fix lint and compiler warnings instead of suppressing them. If a suppression is unavoidable, scope it to the narrowest element and say why on the same line (as in `FocusLock.releaseDeviceOwner`).
 - **Tests:** a change to `FocusViewModel` behavior comes with unit tests; inject time, I/O and side effects (like `now` and `playAlarm`) so tests stay deterministic.
-- **Done means checked:** run `./scripts/check.sh` before calling a change finished, and update this file and README.md when behavior or architecture changes.
+- **Done means checked:** run `./scripts/check.sh` once before calling a change finished (not after every edit), and update this file and README.md only when user-visible behavior or architecture changes (not for layout, styling or wording tweaks).
+
+## Working efficiently
+
+- Keep small tasks small: use the Architecture section above as the map and open only the files the change touches, instead of exploring the codebase or reading README.md.
+- Never install or launch the app on the phone unless the user asks (they run `/run` themselves) or it is necessary for a certain fix.

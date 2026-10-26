@@ -5,8 +5,9 @@
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-# --continue so one failure (e.g. lint) doesn't hide another (e.g. a failing test)
-if ./gradlew assembleDebug lint testDebugUnitTest --continue "$@"; then
+# --continue so one failure (e.g. lint) doesn't hide another (e.g. a failing test);
+# --quiet keeps the log to errors, which are summarized below
+if ./gradlew assembleDebug lint testDebugUnitTest --continue --quiet "$@"; then
     exit 0
 fi
 
