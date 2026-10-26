@@ -37,8 +37,8 @@ import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 
 /**
- * The alarm sound, the lock strength (with device-owner removal, or else the "always use the app guard" toggle)
- * and the app version.
+ * The alarm sound, the "always use the app guard" toggle (soft lock only), the lock strength (with device-owner
+ * removal) and the app version.
  */
 @Composable
 fun SettingsScreen(
@@ -79,25 +79,8 @@ fun SettingsScreen(
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                SettingRow(title = stringResource(R.string.lock_mode)) {
-                    Text(
-                        stringResource(if (isDeviceOwner) R.string.full_lock else R.string.soft_lock_warning),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    if (isDeviceOwner) {
-                        TextButton(
-                            onClick = { confirmRemoval = true },
-                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
-                        ) {
-                            Text(stringResource(R.string.remove_device_owner))
-                        }
-                    }
-                }
-
                 // As device owner the lock is full either way, so there's nothing to choose
                 if (!isDeviceOwner) {
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     SettingRow(
                         title = stringResource(R.string.always_use_app_guard),
                         modifier = Modifier.clickable { onAlwaysUseAppGuardChange(!alwaysUseAppGuard) },
@@ -110,6 +93,23 @@ fun SettingsScreen(
                         )
                         if (alwaysUseAppGuard && !isAppGuardOn) {
                             TextButton(onClick = onTurnOnAppGuard) { Text(stringResource(R.string.turn_on)) }
+                        }
+                    }
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                }
+
+                SettingRow(title = stringResource(R.string.lock_mode)) {
+                    Text(
+                        stringResource(if (isDeviceOwner) R.string.full_lock else R.string.soft_lock_warning),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    if (isDeviceOwner) {
+                        TextButton(
+                            onClick = { confirmRemoval = true },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+                        ) {
+                            Text(stringResource(R.string.remove_device_owner))
                         }
                     }
                 }
