@@ -4,6 +4,8 @@ import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageInstaller
+import android.os.Build
 import android.provider.Settings
 import android.telecom.InCallService
 import android.view.accessibility.AccessibilityEvent
@@ -60,5 +62,14 @@ class AppGuardService : AccessibilityService() {
             val appGuard = ComponentName(context, AppGuardService::class.java)
             return enabledServices.split(':').any { ComponentName.unflattenFromString(it) == appGuard }
         }
+
+        /**
+         * Whether Android may refuse the app guard's switch as a "restricted setting": from Android 13, for apps not
+         * installed from an app store. The restriction's actual state can't be read by apps, so this is only a hint.
+         */
+        fun mayBeRestricted(context: Context): Boolean =
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                context.packageManager.getInstallSourceInfo(context.packageName).packageSource !=
+                PackageInstaller.PACKAGE_SOURCE_STORE
     }
 }

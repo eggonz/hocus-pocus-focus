@@ -16,6 +16,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -31,6 +32,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.example.hocuspocusfocus.ui.APP_ICON_SIZE
+import com.example.hocuspocusfocus.ui.AppGuardHelpDialog
 import com.example.hocuspocusfocus.ui.EditRoutineScreen
 import com.example.hocuspocusfocus.ui.FocusScreen
 import com.example.hocuspocusfocus.ui.HomeScreen
@@ -119,6 +121,7 @@ class MainActivity : ComponentActivity() {
                 var showRoutines by rememberSaveable { mutableStateOf(false) }
                 var openRoutineId by rememberSaveable { mutableStateOf<Int?>(null) }
                 var isEditingRoutine by rememberSaveable { mutableStateOf(false) }
+                var showAppGuardHelp by rememberSaveable { mutableStateOf(false) }
                 val openRoutine = routines.find { it.id == openRoutineId }
                 val openRoutineAppCount = remember(openRoutine?.allowedApps) {
                     openRoutine?.allowedApps.orEmpty().count { packageManager.getLaunchIntentForPackage(it) != null }
@@ -155,7 +158,7 @@ class MainActivity : ComponentActivity() {
                         onEdit = { isEditingRoutine = true },
                         onStart = { viewModel.startRoutine(openRoutine) },
                         showAppGuardHint = !isDeviceOwner && !isAppGuardOn && openRoutineAppCount > 0,
-                        onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        onTurnOnAppGuard = { showAppGuardHelp = true },
                         onBack = { openRoutineId = null },
                     )
                 } else if (showRoutines && remainingMillis == null) {
@@ -180,7 +183,7 @@ class MainActivity : ComponentActivity() {
                         versionName = BuildConfig.VERSION_NAME,
                         onPickAlarmSound = { pickAlarmSound.launch(alarmSoundPickerIntent(alarmSound)) },
                         onAlwaysUseAppGuardChange = viewModel::setAlwaysUseAppGuard,
-                        onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        onTurnOnAppGuard = { showAppGuardHelp = true },
                         onRemoveDeviceOwner = {
                             focusLock.releaseDeviceOwner()
                             isDeviceOwner = false
@@ -197,7 +200,7 @@ class MainActivity : ComponentActivity() {
                             onOpenSettings = { showSettings = true },
                             onOpenRoutines = { showRoutines = true },
                             showAppGuardPrompt = !isDeviceOwner && alwaysUseAppGuard && !isAppGuardOn,
-                            onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                            onTurnOnAppGuard = { showAppGuardHelp = true },
                         )
                     } else {
                         FocusScreen(
@@ -213,6 +216,23 @@ class MainActivity : ComponentActivity() {
                             canOpenApps = isDeviceOwner || isAppGuardOn,
                         )
                     }
+                }
+
+                // Coming back from the settings with the guard on is the end of the steps
+                LaunchedEffect(isAppGuardOn) {
+                    if (isAppGuardOn) showAppGuardHelp = false
+                }
+                if (showAppGuardHelp) {
+                    AppGuardHelpDialog(
+                        mayBeRestricted = remember { AppGuardService.mayBeRestricted(this) },
+                        onOpenAppInfo = {
+                            startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)),
+                            )
+                        },
+                        onOpenAccessibilitySettings = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        onDismiss = { showAppGuardHelp = false },
+                    )
                 }
             }
         }

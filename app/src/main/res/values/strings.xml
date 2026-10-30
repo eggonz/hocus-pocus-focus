@@ -87,6 +87,11 @@
     <string name="app_guard_description">During a focus session, brings Hocus Pocus back whenever an app the session doesn\'t allow is opened. Needed for routines to open their allowed apps unless the app is device owner. It only looks at which app is in front, never at what\'s on screen.</string>
     <string name="app_guard_hint">Turn on the app guard so these apps can open during the session.</string>
     <string name="turn_on">Turn on</string>
+    <string name="app_guard_help_title">Turn on the app guard</string>
+    <string name="app_guard_help_turn_on">In Accessibility, find Hocus Pocus app guard and turn it on. It\'s usually under Installed apps or Downloaded apps.</string>
+    <string name="app_guard_help_restricted">If Android says it\'s a restricted setting, close that message and come back here. In App info, open the ⋮ menu, tap Allow restricted settings, then try the switch again.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="app_info">App info</string>
     <string name="alarm_sound">Alarm sound</string>
     <string name="alarm_sound_silent">Silent</string>
     <string name="alarm_sound_unknown">Unknown sound</string>

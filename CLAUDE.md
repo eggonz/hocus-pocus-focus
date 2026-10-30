@@ -24,7 +24,7 @@ Focus app: START begins a session (5 min–3 h) that locks the phone to the app 
 - `AppGuardService`: accessibility service that brings the app back unless the front app is allowed (routine apps, system UI, keyboards, call screens).
 - `FocusAdminReceiver`: target of `dpm set-device-owner`; renaming it breaks the README command.
 - `Routine.kt`: routine model and JSON. `AlarmPlayer.kt`: end-of-session sound.
-- `ui/`: stateless screens (values in, callbacks out): `HomeScreen` (idle), `FocusScreen` (countdown), `SettingsScreen`, `RoutinesScreen` (grid), `RoutineScreen` (page), `EditRoutineScreen`, `AppIcon` (`InstalledApp`), `IconPool` (enum of every routine icon, persisted by name, and the quick-pick lists).
+- `ui/`: stateless screens (values in, callbacks out): `HomeScreen` (idle), `FocusScreen` (countdown), `SettingsScreen`, `RoutinesScreen` (grid), `RoutineScreen` (page), `EditRoutineScreen`, `AppGuardHelpDialog`, `AppIcon` (`InstalledApp`), `IconPool` (enum of every routine icon, persisted by name, and the quick-pick lists).
 - System bars stay visible during a session on purpose: hiding them makes Android show a misleading "swipe down to exit" hint.
 
 ## Code style
