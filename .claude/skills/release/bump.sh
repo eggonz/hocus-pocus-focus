@@ -35,7 +35,7 @@ if [[ $(git rev-list --count HEAD..origin/master) -gt 0 ]]; then
   exit 2
 fi
 if [[ ! -f signing.env ]]; then
-  echo "error: signing.env not found, see README.md (CI and releases)" >&2
+  echo "error: signing.env not found, see CONTRIBUTING.md (CI and releases)" >&2
   exit 2
 fi
 

@@ -40,4 +40,4 @@ If the push fails, leave the commit and tag in place and tell the user what fail
 
 ## 4. Report
 
-Tell the user the release workflow is running at https://github.com/eggonz/hocus-pocus-focus/actions and the release will appear at https://github.com/eggonz/hocus-pocus-focus/releases/tag/v<version>. `gh` isn't installed, so you can't follow the run; if it fails, the usual causes are missing or wrong `SIGNING_*` repo secrets (see README.md, CI and releases).
+Tell the user the release workflow is running at https://github.com/eggonz/hocus-pocus-focus/actions and the release will appear at https://github.com/eggonz/hocus-pocus-focus/releases/tag/v<version>. `gh` isn't installed, so you can't follow the run; if it fails, the usual causes are missing or wrong `SIGNING_*` repo secrets (see CONTRIBUTING.md, CI and releases).
