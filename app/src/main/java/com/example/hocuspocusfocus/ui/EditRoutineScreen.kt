@@ -176,7 +176,7 @@ fun EditRoutineScreen(
         AlertDialog(
             onDismissRequest = { confirmDeletion = false },
             title = { Text(stringResource(R.string.delete_routine)) },
-            text = { Text(stringResource(R.string.delete_routine_message, routine.title)) },
+            text = { Text(stringResource(R.string.delete_routine_message, routine.displayTitle())) },
             confirmButton = {
                 TextButton(onClick = {
                     confirmDeletion = false

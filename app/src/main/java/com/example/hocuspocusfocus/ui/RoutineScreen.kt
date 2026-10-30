@@ -106,7 +106,7 @@ fun RoutineScreen(
                         modifier = Modifier.size(96.dp),
                     )
                     Text(
-                        routine.title,
+                        routine.displayTitle(),
                         style = MaterialTheme.typography.displaySmall,
                         fontFamily = DisplayFontFamily,
                         textAlign = TextAlign.Center,

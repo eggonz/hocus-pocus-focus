@@ -20,6 +20,7 @@
     <string name="routines">Routines</string>
     <string name="routine_morning">Morning</string>
     <string name="new_routine">New routine</string>
+    <string name="untitled_routine">Untitled routine</string>
     <string name="edit_routine">Edit routine</string>
     <string name="delete_routine">Delete routine</string>
     <string name="delete_routine_message">\"%1$s\" will be deleted for good.</string>

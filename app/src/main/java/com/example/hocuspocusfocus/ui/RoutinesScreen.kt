@@ -105,7 +105,7 @@ private fun RoutineTile(routine: Routine, onClick: () -> Unit) {
                 modifier = Modifier.size(40.dp),
             )
             Text(
-                routine.title,
+                routine.displayTitle(),
                 style = MaterialTheme.typography.titleMedium,
                 fontFamily = DisplayFontFamily,
                 textAlign = TextAlign.Center,
@@ -120,6 +120,10 @@ private fun RoutineTile(routine: Routine, onClick: () -> Unit) {
         }
     }
 }
+
+/** The routine's title, or the new routine placeholder (as in the title field) while it has none. */
+@Composable
+internal fun Routine.displayTitle(): String = title.ifBlank { stringResource(R.string.untitled_routine) }
 
 @Preview(showBackground = true)
 @Composable
