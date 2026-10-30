@@ -57,7 +57,6 @@ import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.Routine
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
-import com.example.hocuspocusfocus.ui.theme.Glow
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 import kotlin.math.abs
 
