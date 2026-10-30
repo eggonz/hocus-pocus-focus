@@ -19,6 +19,15 @@
     <string name="back">Back</string>
     <string name="routines">Routines</string>
     <string name="routine_morning">Morning</string>
+    <string name="routine_morning_coffee">Coffee</string>
+    <string name="routine_morning_breakfast">Breakfast</string>
+    <string name="routine_morning_bed">Make bed</string>
+    <string name="routine_morning_water">Drink water</string>
+    <string name="routine_morning_shower">Shower</string>
+    <string name="routine_morning_teeth">Brush teeth</string>
+    <string name="routine_morning_clothes">Clothes</string>
+    <string name="routine_morning_meditate">Meditate</string>
+    <string name="routine_morning_stretching">Stretching</string>
     <string name="new_routine">New routine</string>
     <string name="untitled_routine">Untitled routine</string>
     <string name="edit_routine">Edit routine</string>

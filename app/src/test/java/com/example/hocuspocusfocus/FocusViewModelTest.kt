@@ -256,8 +256,8 @@ class FocusViewModelTest {
     }
 
     @Test
-    fun `starts with the one hour Morning routine`() = runTest(dispatcher) {
-        assertEquals(listOf(Routine(0, IconPool.DEFAULT, "Morning", 60)), newViewModel().routines.value)
+    fun `starts with the one hour Morning routine and its sample tasks`() = runTest(dispatcher) {
+        assertEquals(listOf(morningRoutine), newViewModel().routines.value)
     }
 
     @Test
@@ -271,8 +271,26 @@ class FocusViewModelTest {
     fun `an added routine gets a new id and is remembered`() = runTest(dispatcher) {
         val added = newViewModel().addRoutine()
         assertEquals(Routine(1, IconPool.DEFAULT, "", 60), added)
-        assertEquals(listOf(Routine(0, IconPool.DEFAULT, "Morning", 60), added), newViewModel().routines.value)
+        assertEquals(listOf(morningRoutine, added), newViewModel().routines.value)
     }
+
+    private val morningRoutine = Routine(
+        0,
+        IconPool.DEFAULT,
+        "Morning",
+        60,
+        tasks = listOf(
+            RoutineTask(IconPool.COFFEE, "Coffee"),
+            RoutineTask(IconPool.BREAKFAST, "Breakfast"),
+            RoutineTask(IconPool.BED, "Make bed"),
+            RoutineTask(IconPool.GLASS_OF_WATER, "Drink water"),
+            RoutineTask(IconPool.SHOWER, "Shower"),
+            RoutineTask(IconPool.TOOTHBRUSH, "Brush teeth"),
+            RoutineTask(IconPool.TSHIRT, "Clothes"),
+            RoutineTask(IconPool.MEDITATION, "Meditate"),
+            RoutineTask(IconPool.STRETCHING, "Stretching"),
+        ),
+    )
 
     @Test
     fun `a deleted routine stays deleted`() = runTest(dispatcher) {

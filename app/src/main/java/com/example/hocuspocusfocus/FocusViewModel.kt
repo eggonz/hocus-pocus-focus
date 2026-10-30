@@ -68,10 +68,28 @@ class FocusViewModel(
     /** Whether sessions without allowed apps use the app guard too, not pinning. Remembered across launches. */
     val alwaysUseAppGuard: StateFlow<Boolean> = _alwaysUseAppGuard.asStateFlow()
 
-    // Until the user edits one, the routines are the built-in Morning routine
+    // Not in the companion object because its text comes from string resources, which need the app
+    private val SAMPLE_ROUTINE = Routine(
+        id = 0,
+        IconPool.DEFAULT,
+        app.getString(R.string.routine_morning),
+        60,
+        tasks = listOf(
+            RoutineTask(IconPool.COFFEE, app.getString(R.string.routine_morning_coffee)),
+            RoutineTask(IconPool.BREAKFAST, app.getString(R.string.routine_morning_breakfast)),
+            RoutineTask(IconPool.BED, app.getString(R.string.routine_morning_bed)),
+            RoutineTask(IconPool.GLASS_OF_WATER, app.getString(R.string.routine_morning_water)),
+            RoutineTask(IconPool.SHOWER, app.getString(R.string.routine_morning_shower)),
+            RoutineTask(IconPool.TOOTHBRUSH, app.getString(R.string.routine_morning_teeth)),
+            RoutineTask(IconPool.TSHIRT, app.getString(R.string.routine_morning_clothes)),
+            RoutineTask(IconPool.MEDITATION, app.getString(R.string.routine_morning_meditate)),
+            RoutineTask(IconPool.STRETCHING, app.getString(R.string.routine_morning_stretching)),
+        ),
+    )
+
+    // Until the user edits one, the routines are the sample routine
     private val _routines = MutableStateFlow(
-        prefs.getString(KEY_ROUTINES, null)?.let(::routinesFromJson)
-            ?: listOf(Routine(id = 0, IconPool.DEFAULT, app.getString(R.string.routine_morning), 60)),
+        prefs.getString(KEY_ROUTINES, null)?.let(::routinesFromJson) ?: listOf(SAMPLE_ROUTINE),
     )
 
     /** The user's routines. Remembered across launches. */
