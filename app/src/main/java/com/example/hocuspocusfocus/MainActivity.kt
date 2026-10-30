@@ -32,6 +32,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.example.hocuspocusfocus.ui.APP_ICON_SIZE
 import com.example.hocuspocusfocus.ui.EditRoutineScreen
 import com.example.hocuspocusfocus.ui.FocusScreen
+import com.example.hocuspocusfocus.ui.HomeScreen
 import com.example.hocuspocusfocus.ui.InstalledApp
 import com.example.hocuspocusfocus.ui.RoutineScreen
 import com.example.hocuspocusfocus.ui.RoutinesScreen
@@ -109,6 +110,9 @@ class MainActivity : ComponentActivity() {
                 var openRoutineId by rememberSaveable { mutableStateOf<Int?>(null) }
                 var isEditingRoutine by rememberSaveable { mutableStateOf(false) }
                 val openRoutine = routines.find { it.id == openRoutineId }
+                val openRoutineAppCount = remember(openRoutine?.allowedApps) {
+                    openRoutine?.allowedApps.orEmpty().count { packageManager.getLaunchIntentForPackage(it) != null }
+                }
                 // Loaded off the main thread at start, so the icons are ready when a routine opens, and again each
                 // time the routines open to pick up newly installed apps
                 val installedApps by produceState(emptyList(), showRoutines) {
@@ -123,6 +127,7 @@ class MainActivity : ComponentActivity() {
                     BackHandler { isEditingRoutine = false }
                     EditRoutineScreen(
                         routine = openRoutine,
+                        allowedAppCount = openRoutineAppCount,
                         installedApps = installedApps,
                         onChange = viewModel::updateRoutine,
                         onDelete = {
@@ -136,11 +141,10 @@ class MainActivity : ComponentActivity() {
                     BackHandler { openRoutineId = null }
                     RoutineScreen(
                         routine = openRoutine,
-                        installedApps = installedApps,
+                        allowedAppCount = openRoutineAppCount,
                         onEdit = { isEditingRoutine = true },
                         onStart = { viewModel.startRoutine(openRoutine) },
-                        showAppGuardHint = !isDeviceOwner && !isAppGuardOn &&
-                            appsIn(openRoutine.allowedApps, installedApps).isNotEmpty(),
+                        showAppGuardHint = !isDeviceOwner && !isAppGuardOn && openRoutineAppCount > 0,
                         onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                         onBack = { openRoutineId = null },
                     )
@@ -174,23 +178,31 @@ class MainActivity : ComponentActivity() {
                         onBack = { showSettings = false },
                     )
                 } else {
-                    FocusScreen(
-                        remainingMillis = remainingMillis,
-                        durationMinutes = sessionRoutine?.durationMinutes ?: durationMinutes,
-                        onStepDuration = viewModel::stepDuration,
-                        onStart = viewModel::start,
-                        onStop = viewModel::stop,
-                        onPause = viewModel::pause,
-                        onResume = viewModel::resume,
-                        onOpenSettings = { showSettings = true },
-                        onOpenRoutines = { showRoutines = true },
-                        allowedApps = appsIn(sessionRoutine?.allowedApps.orEmpty(), installedApps),
-                        onOpenApp = { openApp(it.packageName) },
-                        isPaused = isPaused,
-                        canOpenApps = isDeviceOwner || isAppGuardOn,
-                        showAppGuardPrompt = !isDeviceOwner && alwaysUseAppGuard && !isAppGuardOn,
-                        onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
-                    )
+                    val sessionRemainingMillis = remainingMillis
+                    if (sessionRemainingMillis == null) {
+                        HomeScreen(
+                            durationMinutes = durationMinutes,
+                            onStepDuration = viewModel::stepDuration,
+                            onStart = viewModel::start,
+                            onOpenSettings = { showSettings = true },
+                            onOpenRoutines = { showRoutines = true },
+                            showAppGuardPrompt = !isDeviceOwner && alwaysUseAppGuard && !isAppGuardOn,
+                            onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                        )
+                    } else {
+                        FocusScreen(
+                            remainingMillis = sessionRemainingMillis,
+                            durationMinutes = sessionRoutine?.durationMinutes ?: durationMinutes,
+                            onStop = viewModel::stop,
+                            onPause = viewModel::pause,
+                            onResume = viewModel::resume,
+                            allowedApps = appsIn(sessionRoutine?.allowedApps.orEmpty(), installedApps),
+                            onOpenApp = { openApp(it.packageName) },
+                            tasks = sessionRoutine?.tasks.orEmpty(),
+                            isPaused = isPaused,
+                            canOpenApps = isDeviceOwner || isAppGuardOn,
+                        )
+                    }
                 }
             }
         }

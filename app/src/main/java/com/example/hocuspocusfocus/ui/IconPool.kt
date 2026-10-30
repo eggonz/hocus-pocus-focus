@@ -1167,6 +1167,9 @@ enum class IconPool(@param:DrawableRes val drawable: Int, val category: String, 
     companion object {
         /** The icon of new routines, and of saved ones whose icon no longer exists. */
         val DEFAULT: IconPool get() = quickRoutineIcons.first()
+
+        /** The icon of new tasks, and of saved ones whose icon no longer exists. */
+        val DEFAULT_TASK: IconPool get() = quickTaskIcons.first()
     }
 }
 
@@ -1198,7 +1201,7 @@ internal val quickRoutineIcons: List<IconPool> = listOf(
     IconPool.RESTAURANT,
 )
 
-/** Most used icons for everyday tasks and chores. */
+/** Most used icons for everyday tasks and chores, offered by the routine edit screen's task rows. */
 internal val quickTaskIcons: List<IconPool> = listOf(
     IconPool.CHECKLIST,
     IconPool.CALENDAR,

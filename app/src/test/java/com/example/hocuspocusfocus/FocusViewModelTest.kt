@@ -290,6 +290,28 @@ class FocusViewModelTest {
     }
 
     @Test
+    fun `a routine's tasks are remembered in order`() = runTest(dispatcher) {
+        val tasks = listOf(RoutineTask(IconPool.PILLS, "Vitamins"), RoutineTask(IconPool.DEFAULT_TASK, ""))
+        val edited = Routine(0, IconPool.SUN, "Morning", 60, tasks = tasks)
+        newViewModel().updateRoutine(edited)
+        assertEquals(listOf(edited), newViewModel().routines.value)
+    }
+
+    @Test
+    fun `a task whose icon no longer exists gets the default task icon`() = runTest(dispatcher) {
+        prefs.edit {
+            putString(
+                "routines",
+                """[{"id":0,"icon":"MOON","title":"Night","duration_minutes":30,
+                    "tasks":[{"icon":"GONE","label":"Vitamins"}]}]""",
+            )
+        }
+        val tasks = listOf(RoutineTask(IconPool.DEFAULT_TASK, "Vitamins"))
+        val expected = Routine(0, IconPool.MOON, "Night", 30, tasks = tasks)
+        assertEquals(listOf(expected), newViewModel().routines.value)
+    }
+
+    @Test
     fun `a routine saved before allowed apps existed has none`() = runTest(dispatcher) {
         prefs.edit {
             putString("routines", """[{"id":0,"icon":"MOON","title":"Night","duration_minutes":30}]""")

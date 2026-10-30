@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.Routine
+import com.example.hocuspocusfocus.RoutineTask
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.Glow
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
@@ -44,14 +45,14 @@ import com.example.hocuspocusfocus.ui.theme.Night
 private val START_BUTTON_DIAMETER_ON_ROUTINE = 113.dp
 
 /**
- * One routine's page: its icon, title, duration and number of allowed apps, with a pencil button to edit them
- * and a START button to run it. When [showAppGuardHint], the allowed apps are marked as blocked and START is a plain
+ * One routine's page: its icon, title, duration, [allowedAppCount] and number of tasks, with a pencil button to edit
+ * them and a START button to run it. When [showAppGuardHint], the allowed apps are marked as blocked and START is a plain
  * button under a hint to turn on the app guard.
  */
 @Composable
 fun RoutineScreen(
     routine: Routine,
-    installedApps: List<InstalledApp>,
+    allowedAppCount: Int,
     onEdit: () -> Unit,
     onStart: () -> Unit,
     showAppGuardHint: Boolean,
@@ -122,23 +123,34 @@ fun RoutineScreen(
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            val allowedAppCount = appsIn(routine.allowedApps, installedApps).size
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    pluralStringResource(R.plurals.apps_allowed, allowedAppCount, allowedAppCount),
+                    pluralStringResource(R.plurals.task_count, routine.tasks.size, routine.tasks.size),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-                if (showAppGuardHint) {
-                    Icon(
-                        painterResource(R.drawable.ic_block),
-                        stringResource(R.string.apps_blocked),
-                        tint = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.size(20.dp),
-                    )
+                if (allowedAppCount > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text(
+                            pluralStringResource(R.plurals.apps_allowed, allowedAppCount, allowedAppCount),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        if (showAppGuardHint) {
+                            Icon(
+                                painterResource(R.drawable.ic_block),
+                                stringResource(R.string.apps_blocked),
+                                tint = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                 }
             }
             Spacer(modifier = Modifier.weight(1f))
@@ -189,8 +201,15 @@ private fun RoutinePreview() {
     HocusPocusFocusTheme {
         val apps = previewApps()
         RoutineScreen(
-            Routine(0, IconPool.SUN, "Morning", 60, apps.map { it.packageName }),
-            installedApps = apps,
+            Routine(
+                0,
+                IconPool.SUN,
+                "Morning",
+                60,
+                apps.map { it.packageName },
+                listOf(RoutineTask(IconPool.PILLS, "Vitamins")),
+            ),
+            allowedAppCount = apps.size,
             onEdit = {},
             onStart = {},
             showAppGuardHint = false,
@@ -207,7 +226,7 @@ private fun RoutineAppGuardHintPreview() {
         val apps = previewApps()
         RoutineScreen(
             Routine(0, IconPool.SUN, "Morning", 60, apps.map { it.packageName }),
-            installedApps = apps,
+            allowedAppCount = apps.size,
             onEdit = {},
             onStart = {},
             showAppGuardHint = true,

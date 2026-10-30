@@ -28,13 +28,22 @@
     <string name="routine_title">Title</string>
     <string name="routine_duration">Duration</string>
     <string name="allowed_apps">Allowed apps</string>
+    <string name="section_count">%1$d/%2$d</string>
     <plurals name="apps_allowed">
         <item quantity="one">%d app allowed</item>
         <item quantity="other">%d apps allowed</item>
     </plurals>
+    <plurals name="task_count">
+        <item quantity="one">%d task</item>
+        <item quantity="other">%d tasks</item>
+    </plurals>
     <string name="apps_blocked">Blocked while the app guard is off</string>
     <string name="add_app">Add app</string>
     <string name="remove_app">Remove %1$s</string>
+    <string name="tasks">Tasks</string>
+    <string name="task_label">Label</string>
+    <string name="add_task">Add task</string>
+    <string name="remove_task">Remove task</string>
     <string name="minus_minutes">−%1$d</string>
     <string name="plus_minutes">+%1$d</string>
     <string name="icon_sun">Sun</string>
