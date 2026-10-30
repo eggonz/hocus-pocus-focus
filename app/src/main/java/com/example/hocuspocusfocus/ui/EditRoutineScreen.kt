@@ -16,17 +16,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledIconToggleButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -35,11 +40,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -49,13 +56,13 @@ import androidx.compose.ui.unit.dp
 import com.example.hocuspocusfocus.FOCUS_DURATIONS_MINUTES
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.Routine
-import com.example.hocuspocusfocus.RoutineIcon
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
+import com.example.hocuspocusfocus.ui.theme.Glow
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 import kotlin.math.abs
 
 /**
- * Edits a routine's icon, title, duration and allowed apps (picked from [installedApps]); every change is passed
+ * Edits a routine's icon (picked in a dialog), title, duration and allowed apps (picked from [installedApps]); every change is passed
  * straight to [onChange]. The trash button at the top right calls [onDelete] once confirmed.
  */
 @Composable
@@ -67,6 +74,7 @@ fun EditRoutineScreen(
     onBack: () -> Unit,
 ) {
     var isAddingApp by rememberSaveable { mutableStateOf(false) }
+    var isChoosingIcon by rememberSaveable { mutableStateOf(false) }
     var confirmDeletion by rememberSaveable { mutableStateOf(false) }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
@@ -99,28 +107,34 @@ fun EditRoutineScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                    .padding(horizontal = SCREEN_MARGIN, vertical = 16.dp),
             ) {
-                OutlinedTextField(
-                    value = routine.title,
-                    onValueChange = { onChange(routine.copy(title = it)) },
-                    label = { Text(stringResource(R.string.routine_title)) },
-                    placeholder = { Text(stringResource(R.string.new_routine)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Spacer(Modifier.height(16.dp))
-
-                Text(stringResource(R.string.routine_icon), style = MaterialTheme.typography.titleMedium)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    RoutineIcon.entries.forEach { icon ->
-                        FilledIconToggleButton(
-                            checked = icon == routine.icon,
-                            onCheckedChange = { onChange(routine.copy(icon = icon)) },
-                        ) {
-                            Icon(painterResource(icon.drawable), stringResource(icon.label))
-                        }
+                // As far from the title field as from the screen edge
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(SCREEN_MARGIN),
+                    modifier = Modifier.align(Alignment.CenterHorizontally).width(DURATION_PICKER_WIDTH),
+                ) {
+                    FilledIconButton(
+                        onClick = { isChoosingIcon = true },
+                        // Lines up with the text field's outline, below its floating label
+                        modifier = Modifier.padding(top = 8.dp).size(56.dp),
+                        shape = MaterialTheme.shapes.large,
+                        colors = IconButtonDefaults.filledIconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
+                    ) {
+                        Icon(painterResource(routine.icon.drawable), stringResource(R.string.choose_icon))
                     }
+                    OutlinedTextField(
+                        value = routine.title,
+                        onValueChange = { onChange(routine.copy(title = it)) },
+                        label = { Text(stringResource(R.string.routine_title)) },
+                        placeholder = { Text(stringResource(R.string.new_routine)) },
+                        singleLine = true,
+                        modifier = Modifier.weight(1f),
+                    )
                 }
                 Spacer(Modifier.height(16.dp))
 
@@ -130,7 +144,8 @@ fun EditRoutineScreen(
                     onStepMinutes = { minutes ->
                         onChange(routine.copy(durationMinutes = stepRoutineDuration(routine.durationMinutes, minutes)))
                     },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    // Same gap below the heading as the app icons, which sit inside their badges' margin
+                    modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = BADGE_SIZE / 2),
                 )
                 Spacer(Modifier.height(16.dp))
 
@@ -174,6 +189,17 @@ fun EditRoutineScreen(
         )
     }
 
+    if (isChoosingIcon) {
+        ChooseIconDialog(
+            icon = routine.icon,
+            onSave = { icon ->
+                isChoosingIcon = false
+                onChange(routine.copy(icon = icon))
+            },
+            onDismiss = { isChoosingIcon = false },
+        )
+    }
+
     if (isAddingApp) {
         AddAppDialog(
             apps = installedApps.filter { it.packageName !in routine.allowedApps },
@@ -186,6 +212,7 @@ fun EditRoutineScreen(
     }
 }
 
+private val SCREEN_MARGIN = 24.dp
 private val BADGE_SIZE = 24.dp
 
 /** An app icon with a red minus badge at its top right that calls [onRemove]. */
@@ -210,6 +237,133 @@ private fun RemovableAppIcon(app: InstalledApp, onRemove: () -> Unit) {
             )
         }
     }
+}
+
+private const val ICON_GRID_COLUMNS = 5
+private val ICON_GRID_SPACING = 8.dp
+
+/**
+ * A grid of the [quickRoutineIcons] with [icon] selected, whose last cell opens [AllIconsDialog]; [onSave] gets the
+ * one selected when Save is tapped. Tapping outside calls [onDismiss].
+ */
+@Composable
+private fun ChooseIconDialog(icon: IconPool, onSave: (IconPool) -> Unit, onDismiss: () -> Unit) {
+    var selectedIcon by rememberSaveable { mutableStateOf(icon) }
+    var isShowingAllIcons by rememberSaveable { mutableStateOf(false) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(ICON_GRID_SPACING)) {
+                (quickRoutineIcons + null).chunked(ICON_GRID_COLUMNS).forEach { row ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(ICON_GRID_SPACING)) {
+                        row.forEach { icon ->
+                            if (icon == null) {
+                                // In the accent color so it doesn't pass for another icon; checked while the
+                                // selected icon is only in the full pool, to show where it is
+                                IconChoiceButton(
+                                    isSelected = selectedIcon !in quickRoutineIcons,
+                                    onSelect = { isShowingAllIcons = true },
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                ) {
+                                    Icon(painterResource(R.drawable.ic_more), stringResource(R.string.all_icons))
+                                }
+                            } else {
+                                IconChoice(icon, selectedIcon) { selectedIcon = it }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(selectedIcon) }) { Text(stringResource(R.string.save)) }
+        },
+    )
+    if (isShowingAllIcons) {
+        AllIconsDialog(
+            selectedIcon = selectedIcon,
+            onSelect = { selectedIcon = it },
+            onSave = { onSave(selectedIcon) },
+            onDismiss = { isShowingAllIcons = false },
+        )
+    }
+}
+
+/**
+ * Every [IconPool] entry under its category's title, in declaration order, with [selectedIcon] selected.
+ * Tapping outside calls [onDismiss], going back to the quick grid.
+ */
+@Composable
+private fun AllIconsDialog(
+    selectedIcon: IconPool,
+    onSelect: (IconPool) -> Unit,
+    onSave: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val categories = remember { IconPool.entries.groupBy { it.category } }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(ICON_GRID_COLUMNS),
+                horizontalArrangement = Arrangement.spacedBy(ICON_GRID_SPACING),
+                verticalArrangement = Arrangement.spacedBy(ICON_GRID_SPACING),
+                modifier = Modifier
+                    // As wide as the quick grid, whose icon buttons take the minimum touch target size
+                    .width(48.dp * ICON_GRID_COLUMNS + ICON_GRID_SPACING * (ICON_GRID_COLUMNS - 1))
+                    .height(480.dp),
+            ) {
+                categories.forEach { (category, icons) ->
+                    item(key = category, span = { GridItemSpan(maxLineSpan) }) {
+                        Text(
+                            categoryTitle(category),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 8.dp),
+                        )
+                    }
+                    items(icons, key = { it.name }) { icon -> IconChoice(icon, selectedIcon, onSelect) }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onSave) { Text(stringResource(R.string.save)) }
+        },
+    )
+}
+
+/** "art_and_crafts" as "Art and crafts". */
+internal fun categoryTitle(category: String): String = category.replace('_', ' ').replaceFirstChar { it.uppercase() }
+
+/** A button showing [icon], selected when it is [selectedIcon]. */
+@Composable
+private fun IconChoice(icon: IconPool, selectedIcon: IconPool, onSelect: (IconPool) -> Unit) {
+    IconChoiceButton(isSelected = icon == selectedIcon, onSelect = { onSelect(icon) }) {
+        Icon(painterResource(icon.drawable), icon.label?.let { stringResource(it) })
+    }
+}
+
+/**
+ * A cell of the icon grids, drawn in [contentColor]; only the selected one gets a background, with the icon cut out of
+ * it for contrast.
+ */
+@Composable
+private fun IconChoiceButton(
+    isSelected: Boolean,
+    onSelect: () -> Unit,
+    contentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    content: @Composable () -> Unit,
+) {
+    FilledIconToggleButton(
+        checked = isSelected,
+        onCheckedChange = { onSelect() },
+        colors = IconButtonDefaults.filledIconToggleButtonColors(
+            containerColor = Color.Transparent,
+            contentColor = contentColor,
+            checkedContentColor = MaterialTheme.colorScheme.background,
+        ),
+        content = content,
+    )
 }
 
 /** A list of [apps] to pick one from. */
@@ -249,6 +403,10 @@ private val ROUTINE_DURATION_RANGE_MINUTES = FOCUS_DURATIONS_MINUTES.first()..FO
 /** Adds [step] minutes (negative to subtract) to [minutes], staying within 5 min to 3 h. */
 internal fun stepRoutineDuration(minutes: Int, step: Int): Int = (minutes + step).coerceIn(ROUTINE_DURATION_RANGE_MINUTES)
 
+// Fixed, so the buttons don't move as the label changes: four 48dp step buttons, a label wide enough for the
+// longest duration and the padding
+private val DURATION_PICKER_WIDTH = 320.dp
+
 /** A duration picker in 5 and 30 minute steps: −30 −5 on the left, +5 +30 on the right. */
 @Composable
 private fun PreciseDurationPicker(
@@ -259,7 +417,8 @@ private fun PreciseDurationPicker(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+            .width(DURATION_PICKER_WIDTH)
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
             .padding(4.dp),
     ) {
         StepButton(-30, durationMinutes, onStepMinutes)
@@ -268,8 +427,7 @@ private fun PreciseDurationPicker(
             text = formatDuration(durationMinutes),
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium),
             textAlign = TextAlign.Center,
-            // Wide enough for the longest label, so the buttons don't move as it changes
-            modifier = Modifier.widthIn(min = 120.dp),
+            modifier = Modifier.weight(1f),
         )
         StepButton(5, durationMinutes, onStepMinutes)
         StepButton(30, durationMinutes, onStepMinutes)
@@ -292,11 +450,27 @@ private fun StepButton(minutes: Int, durationMinutes: Int, onStepMinutes: (minut
 
 @Preview(showBackground = true)
 @Composable
+private fun ChooseIconDialogPreview() {
+    HocusPocusFocusTheme {
+        ChooseIconDialog(IconPool.SUNRISE, onSave = {}, onDismiss = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun AllIconsDialogPreview() {
+    HocusPocusFocusTheme {
+        AllIconsDialog(IconPool.SUNRISE, onSelect = {}, onSave = {}, onDismiss = {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
 private fun EditRoutinePreview() {
     HocusPocusFocusTheme {
         val apps = previewApps()
         EditRoutineScreen(
-            Routine(0, RoutineIcon.SUN, "Morning", 60, apps.take(2).map { it.packageName }),
+            Routine(0, IconPool.SUN, "Morning", 60, apps.take(2).map { it.packageName }),
             installedApps = apps,
             onChange = {},
             onDelete = {},

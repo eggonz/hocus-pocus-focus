@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drawn for this app: outlined moth with eyespots, banded wing margins and curled antennae -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Head -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12 7.3a1.5 1.2 0 0 1 0 2.4a1.5 1.2 0 0 1 0-2.4z" />
+    <!-- Right half; the left half below is its mirror image -->
+    <group>
+        <!-- Wing outlines, margin bands, inner arc, antenna and body side -->
+        <path
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.7"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M13.3 8.3C15.5 7.8 18.5 7.6 20.6 7.7C22.2 7.8 23.2 9 22.9 10.2C22.6 11.6 21.5 12.8 20 13.5C19.4 13.8 18.8 14 18.3 14.1M12.9 9.4L18.3 14.1C18.9 15.2 18.6 16.6 17.6 17.4C16.5 18.2 14.8 18.4 13.6 18.1C12.8 17.9 12.2 17.5 12 17.1V12.6M21.49 7.89C21.75 10.4 20.5 12.7 18.6 14.03M18.6 15.11C17.4 16.3 14.6 16.7 12 16.4M16.6 7.8C16.6 9.2 15.6 10.3 14.3 10.6M12.6 7.5C13.1 6.6 13.8 6.1 14.6 5.8M12.75 9.6Q12.6 11.5 12 12.8" />
+        <!-- Band dividers end on the outline centerlines; butt caps keep their ends from poking out -->
+        <path
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.7"
+            android:pathData="M21.44 9.59L22.95 9.91M21.03 11.02L22.2 11.74M20.12 12.57L20.6 13.18M13.6 16.5V18.1M15.01 16.43L15.1 18.22M16.47 16.17L16.81 17.84" />
+        <!-- Eyespots -->
+        <path
+            android:fillColor="#FF000000"
+            android:fillType="evenOdd"
+            android:pathData="M18.3 8.85a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 1 0 0-2.4zM18.3 9.6a0.45 0.45 0 1 0 0 0.9a0.45 0.45 0 1 0 0-0.9zM14.4 12.8a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 1 0 0-2.4zM14.4 13.55a0.45 0.45 0 1 0 0 0.9a0.45 0.45 0 1 0 0-0.9z" />
+    </group>
+    <group
+        android:pivotX="12"
+        android:scaleX="-1">
+        <path
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.7"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M13.3 8.3C15.5 7.8 18.5 7.6 20.6 7.7C22.2 7.8 23.2 9 22.9 10.2C22.6 11.6 21.5 12.8 20 13.5C19.4 13.8 18.8 14 18.3 14.1M12.9 9.4L18.3 14.1C18.9 15.2 18.6 16.6 17.6 17.4C16.5 18.2 14.8 18.4 13.6 18.1C12.8 17.9 12.2 17.5 12 17.1V12.6M21.49 7.89C21.75 10.4 20.5 12.7 18.6 14.03M18.6 15.11C17.4 16.3 14.6 16.7 12 16.4M16.6 7.8C16.6 9.2 15.6 10.3 14.3 10.6M12.6 7.5C13.1 6.6 13.8 6.1 14.6 5.8M12.75 9.6Q12.6 11.5 12 12.8" />
+        <!-- Band dividers end on the outline centerlines; butt caps keep their ends from poking out -->
+        <path
+            android:strokeColor="#FF000000"
+            android:strokeWidth="0.7"
+            android:pathData="M21.44 9.59L22.95 9.91M21.03 11.02L22.2 11.74M20.12 12.57L20.6 13.18M13.6 16.5V18.1M15.01 16.43L15.1 18.22M16.47 16.17L16.81 17.84" />
+        <path
+            android:fillColor="#FF000000"
+            android:fillType="evenOdd"
+            android:pathData="M18.3 8.85a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 1 0 0-2.4zM18.3 9.6a0.45 0.45 0 1 0 0 0.9a0.45 0.45 0 1 0 0-0.9zM14.4 12.8a1.2 1.2 0 1 0 0 2.4a1.2 1.2 0 1 0 0-2.4zM14.4 13.55a0.45 0.45 0 1 0 0 0.9a0.45 0.45 0 1 0 0-0.9z" />
+    </group>
+</vector>

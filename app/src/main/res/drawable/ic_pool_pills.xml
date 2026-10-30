@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Based on Material Symbols "pill": a half-filled capsule beside a scored round tablet, like vitamins -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <!-- Capsule outline: the inner stadium is the hole -->
+        <path
+            android:fillColor="#FF000000"
+            android:fillType="evenOdd"
+            android:pathData="M340.6 -831.5L128.5 -619.4A135 135 0 0 0 319.4 -428.5L531.5 -640.6A135 135 0 0 0 340.6 -831.5ZM383 -789.1L170.9 -577A75 75 0 0 0 277 -470.9L489.1 -683A75 75 0 0 0 383 -789.1Z" />
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M262.8 -697.2L156.8 -591.1A95 95 0 0 0 291.1 -456.8L397.2 -562.8ZM555.7 -367.6A180 180 0 0 0 807.6 -115.7ZM592.4 -404.3A180 180 0 0 1 844.3 -152.4Z" />
+    </group>
+</vector>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "tour" icon: tour -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M200-80v-800h80v80h560l-80 200 80 200H280v320h-80Zm80-640v240-240Zm276.5 176.5Q580-567 580-600t-23.5-56.5Q533-680 500-680t-56.5 23.5Q420-633 420-600t23.5 56.5Q467-520 500-520t56.5-23.5ZM280-480h442l-48-120 48-120H280v240Z" />
+    </group>
+</vector>

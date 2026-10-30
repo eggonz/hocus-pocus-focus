@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Design Icons (Pictogrammers, Apache 2.0) "cards-diamond-outline" icon: diamonds -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12 2L5 12L12 22L19 12M7.44 12L12 5.5L16.56 12L12 18.5" />
+</vector>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "water_damage" icon: wet -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M280-240h400v-347L480-740 280-587v347Zm-80 80v-366L88-440l-47-63 439-337 440 336-48 64-112-86v366H200Zm336.5-183.5Q560-367 560-400q0-27-15-57.5T480-560q-50 72-65 102.5T400-400q0 33 23.5 56.5T480-320q33 0 56.5-23.5ZM480-400Z" />
+    </group>
+</vector>

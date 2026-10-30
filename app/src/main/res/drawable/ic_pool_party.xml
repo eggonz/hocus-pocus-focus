@@ -1,0 +1,58 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!--
+      A party popper spraying confetti. The traced path data is drawn ten times oversize in a
+      box 512 units across, with the y axis pointing up, so the group below carries it into the
+      24 unit viewport the other icons use: the scale takes 5120 down to the 20 units of live
+      area they draw inside, its negative y flips the axis, and the translate centres the
+      flipped drawing on the canvas. Keeping the transform here leaves the traced geometry
+      untouched.
+    -->
+    <group
+        android:translateX="0.5499"
+        android:translateY="23.4525"
+        android:scaleX="0.0044606"
+        android:scaleY="-0.0044606">
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M3045 4805 c-5 -2 -44 -11 -85 -20 -215 -48 -340 -170 -340 -329 0 -59 37 -145 100 -234 l41 -57 -90 -7 c-50 -4 -110 -12 -133 -18 -130 -35 -208 -136 -208 -269 0 -66 41 -158 114 -258 l46 -61 -47 -16 c-37 -11 -151 -36 -169 -36 -2 0 -12 -10 -24 -22 -24 -26 -25 -57 -5 -163 21 -108 41 -129 115 -122 138 12 290 69 362 135 67 62 93 121 93 212 -1 83 -21 134 -97 240 l-39 55 90 7 c159 13 238 46 289 121 85 124 71 231 -53 408 l-54 78 47 15 c26 8 74 20 106 25 107 19 120 49 90 197 -20 98 -41 124 -98 123 -23 0 -45 -2 -51 -4z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M4172 4657 c-75 -75 -122 -130 -122 -142 0 -27 119 -145 145 -145 13 0 69 48 144 124 107 107 123 127 118 148 -8 31 -120 138 -144 138 -10 0 -73 -55 -141 -123z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M1776 4464 c-13 -13 -16 -44 -16 -184 0 -207 -4 -200 120 -200 124 0 120 -7 120 200 0 207 4 200 -120 200 -67 0 -92 -4 -104 -16z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M4460 4109 c-504 -64 -1067 -410 -1430 -881 -67 -86 -78 -110 -62 -134 13 -19 146 -104 164 -104 10 0 44 36 80 83 237 311 632 604 979 725 101 36 246 68 347 78 42 4 79 13 88 21 10 10 14 39 14 102 0 126 -10 132 -180 110z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M1517 3346 c-58 -16 -124 -60 -152 -102 -27 -40 -57 -115 -231 -588 l-144 -389 38 -51 c182 -241 519 -482 916 -656 329 -145 721 -250 1021 -275 71 -6 87 -4 148 19 38 15 85 35 105 45 124 64 171 222 123 412 -44 170 -193 429 -387 674 -110 139 -386 415 -524 524 -381 303 -709 442 -913 387z m220 -251 c233 -73 501 -261 799 -559 186 -187 267 -283 379 -451 151 -226 234 -443 196 -513 -36 -68 -290 19 -530 182 -450 304 -885 811 -1006 1170 -27 80 -33 164 -13 184 19 19 91 14 175 -13z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M4522 3190 c-11 -11 -24 -37 -27 -57 -10 -57 -34 -153 -43 -168 -5 -10 -26 1 -81 41 -118 85 -153 99 -246 99 -67 0 -88 -4 -130 -26 -96 -50 -139 -137 -153 -308 l-7 -91 -50 36 c-86 62 -183 104 -240 104 -120 0 -221 -70 -279 -194 -37 -78 -66 -181 -73 -266 -7 -73 13 -92 121 -114 148 -30 178 -17 197 90 5 32 17 80 25 106 l15 47 79 -54 c121 -85 178 -108 258 -103 122 6 213 77 247 191 9 29 18 94 22 145 3 50 8 92 11 92 2 0 21 -13 41 -29 20 -16 68 -46 106 -67 64 -36 77 -39 145 -39 60 0 85 5 124 25 98 50 165 157 205 326 39 169 28 193 -104 219 -106 20 -137 19 -163 -5z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M810 1778 c-46 -123 -93 -250 -106 -284 l-23 -61 53 -69 c180 -237 538 -407 1037 -493 l116 -20 244 90 c134 50 282 104 329 121 47 17 88 34 93 38 4 3 -28 14 -70 24 -115 27 -393 119 -529 175 -400 165 -701 352 -945 589 l-117 112 -82 -222z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M3776 1984 c-12 -12 -16 -37 -16 -104 0 -124 -7 -120 200 -120 207 0 200 -4 200 120 0 124 7 120 -200 120 -140 0 -171 -3 -184 -16z" />
+
+        <path
+            android:fillColor="@android:color/white"
+            android:pathData="M575 1148 c-2 -7 -61 -166 -131 -352 -138 -373 -140 -384 -86 -438 56 -56 52 -57 590 143 270 101 488 186 484 190 -4 3 -36 14 -72 24 -261 70 -532 214 -699 371 -53 50 -83 71 -86 62z" />
+    </group>
+
+</vector>

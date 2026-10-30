@@ -8,6 +8,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.hocuspocusfocus.ui.IconPool
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +71,7 @@ class FocusViewModel(
     // Until the user edits one, the routines are the built-in Morning routine
     private val _routines = MutableStateFlow(
         prefs.getString(KEY_ROUTINES, null)?.let(::routinesFromJson)
-            ?: listOf(Routine(id = 0, RoutineIcon.SUN, app.getString(R.string.routine_morning), 60)),
+            ?: listOf(Routine(id = 0, IconPool.DEFAULT, app.getString(R.string.routine_morning), 60)),
     )
 
     /** The user's routines. Remembered across launches. */
@@ -81,12 +82,22 @@ class FocusViewModel(
     /** The routine the running session was started from, or null for a plain session or none. */
     val sessionRoutine: StateFlow<Routine?> = _sessionRoutine.asStateFlow()
 
+    private val _isPaused = MutableStateFlow(false)
+
+    /** Whether the running session's countdown is paused; the phone stays locked meanwhile. */
+    val isPaused: StateFlow<Boolean> = _isPaused.asStateFlow()
+
     private var ticker: Job? = null
 
     init {
         val savedEnd = prefs.getLong(KEY_END_TIME, 0L)
-        if (savedEnd > now()) {
-            val savedRoutineId = prefs.getInt(KEY_ROUTINE_ID, NO_ROUTINE)
+        val pausedRemaining = prefs.getLong(KEY_PAUSED_REMAINING, 0L)
+        val savedRoutineId = prefs.getInt(KEY_ROUTINE_ID, NO_ROUTINE)
+        if (pausedRemaining > 0) {
+            _sessionRoutine.value = _routines.value.find { it.id == savedRoutineId }
+            _remainingMillis.value = pausedRemaining
+            _isPaused.value = true
+        } else if (savedEnd > now()) {
             _sessionRoutine.value = _routines.value.find { it.id == savedRoutineId }
             countDownTo(savedEnd)
         } else {
@@ -123,7 +134,7 @@ class FocusViewModel(
     fun addRoutine(): Routine {
         val routine = Routine(
             id = (_routines.value.maxOfOrNull { it.id } ?: -1) + 1,
-            RoutineIcon.SUN,
+            IconPool.DEFAULT,
             title = "",
             durationMinutes = 60,
         )
@@ -156,6 +167,30 @@ class FocusViewModel(
         countDownTo(end)
     }
 
+    /** Freezes the countdown of the running session, which stays on until [resume]d or stopped. */
+    fun pause() {
+        val remaining = _remainingMillis.value ?: return
+        ticker?.cancel()
+        // The time left is saved instead of the end time, so a paused session survives process death too
+        prefs.edit {
+            putLong(KEY_PAUSED_REMAINING, remaining)
+            remove(KEY_END_TIME)
+        }
+        _isPaused.value = true
+    }
+
+    /** Restarts the countdown of a [pause]d session from where it stopped. */
+    fun resume() {
+        if (!_isPaused.value) return
+        val end = now() + prefs.getLong(KEY_PAUSED_REMAINING, 0L)
+        prefs.edit {
+            putLong(KEY_END_TIME, end)
+            remove(KEY_PAUSED_REMAINING)
+        }
+        _isPaused.value = false
+        countDownTo(end)
+    }
+
     fun stop() {
         ticker?.cancel()
         clear()
@@ -180,15 +215,18 @@ class FocusViewModel(
     private fun clear() {
         prefs.edit {
             remove(KEY_END_TIME)
+            remove(KEY_PAUSED_REMAINING)
             remove(KEY_ROUTINE_ID)
         }
         _remainingMillis.value = null
+        _isPaused.value = false
         _sessionRoutine.value = null
     }
 
     internal companion object {
         private const val PREFS_NAME = "focus"
         private const val KEY_END_TIME = "end_time"
+        private const val KEY_PAUSED_REMAINING = "paused_remaining"
         private const val KEY_DURATION = "duration_minutes"
         private const val KEY_DURATION_SECONDS = "duration_seconds"
         private const val KEY_ALARM_SOUND = "alarm_sound"
@@ -203,7 +241,8 @@ class FocusViewModel(
          */
         fun savedSessionAllowedApps(context: Context, now: Long): List<String>? {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            if (prefs.getLong(KEY_END_TIME, 0L) <= now) return null
+            val isRunning = prefs.getLong(KEY_END_TIME, 0L) > now || prefs.getLong(KEY_PAUSED_REMAINING, 0L) > 0
+            if (!isRunning) return null
             val routineId = prefs.getInt(KEY_ROUTINE_ID, NO_ROUTINE)
             val routine = prefs.getString(KEY_ROUTINES, null)?.let(::routinesFromJson)?.find { it.id == routineId }
             return routine?.allowedApps.orEmpty()

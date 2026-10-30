@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.edit
 import androidx.test.core.app.ApplicationProvider
+import com.example.hocuspocusfocus.ui.IconPool
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -17,7 +18,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -106,6 +109,42 @@ class FocusViewModelTest {
         assertEquals(DEFAULT_DURATION_MILLIS - 5_000, second.remainingMillis.value)
         first.stop()
         second.stop()
+    }
+
+    @Test
+    fun `a paused session keeps its time left until resumed`() = runTest(dispatcher) {
+        val vm = newViewModel()
+        vm.start()
+        advanceBy(5_000)
+        vm.pause()
+        assertTrue(vm.isPaused.value)
+        advanceBy(60_000)
+        assertEquals(DEFAULT_DURATION_MILLIS - 5_000, vm.remainingMillis.value)
+
+        vm.resume()
+        assertFalse(vm.isPaused.value)
+        advanceBy(1_000)
+        assertEquals(DEFAULT_DURATION_MILLIS - 6_000, vm.remainingMillis.value)
+        assertEquals(START_TIME + 65_000 + DEFAULT_DURATION_MILLIS - 5_000, savedEndTime)
+        vm.stop()
+    }
+
+    @Test
+    fun `a recreated view model keeps a paused session paused`() = runTest(dispatcher) {
+        val first = newViewModel()
+        first.start()
+        advanceBy(5_000)
+        first.pause()
+        advanceBy(60_000)
+
+        val second = newViewModel()
+        runCurrent()
+        assertTrue(second.isPaused.value)
+        assertEquals(DEFAULT_DURATION_MILLIS - 5_000, second.remainingMillis.value)
+        assertEquals(emptyList<String>(), savedAllowedApps())
+        second.stop()
+        assertFalse(second.isPaused.value)
+        assertNull(savedAllowedApps())
     }
 
     @Test
@@ -218,12 +257,12 @@ class FocusViewModelTest {
 
     @Test
     fun `starts with the one hour Morning routine`() = runTest(dispatcher) {
-        assertEquals(listOf(Routine(0, RoutineIcon.SUN, "Morning", 60)), newViewModel().routines.value)
+        assertEquals(listOf(Routine(0, IconPool.DEFAULT, "Morning", 60)), newViewModel().routines.value)
     }
 
     @Test
     fun `an edited routine is remembered`() = runTest(dispatcher) {
-        val edited = Routine(0, RoutineIcon.BOOK, "Reading", 30)
+        val edited = Routine(0, IconPool.BOOK, "Reading", 30)
         newViewModel().updateRoutine(edited)
         assertEquals(listOf(edited), newViewModel().routines.value)
     }
@@ -231,8 +270,8 @@ class FocusViewModelTest {
     @Test
     fun `an added routine gets a new id and is remembered`() = runTest(dispatcher) {
         val added = newViewModel().addRoutine()
-        assertEquals(Routine(1, RoutineIcon.SUN, "", 60), added)
-        assertEquals(listOf(Routine(0, RoutineIcon.SUN, "Morning", 60), added), newViewModel().routines.value)
+        assertEquals(Routine(1, IconPool.DEFAULT, "", 60), added)
+        assertEquals(listOf(Routine(0, IconPool.DEFAULT, "Morning", 60), added), newViewModel().routines.value)
     }
 
     @Test
@@ -245,7 +284,7 @@ class FocusViewModelTest {
 
     @Test
     fun `a routine's allowed apps are remembered in order`() = runTest(dispatcher) {
-        val edited = Routine(0, RoutineIcon.SUN, "Morning", 60, listOf("com.example.b", "com.example.a"))
+        val edited = Routine(0, IconPool.SUN, "Morning", 60, listOf("com.example.b", "com.example.a"))
         newViewModel().updateRoutine(edited)
         assertEquals(listOf(edited), newViewModel().routines.value)
     }
@@ -255,12 +294,12 @@ class FocusViewModelTest {
         prefs.edit {
             putString("routines", """[{"id":0,"icon":"MOON","title":"Night","duration_minutes":30}]""")
         }
-        assertEquals(listOf(Routine(0, RoutineIcon.MOON, "Night", 30)), newViewModel().routines.value)
+        assertEquals(listOf(Routine(0, IconPool.MOON, "Night", 30)), newViewModel().routines.value)
     }
 
     @Test
     fun `a routine counts down its own duration and is kept as the session routine`() = runTest(dispatcher) {
-        val routine = Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a"))
+        val routine = Routine(0, IconPool.SUN, "Morning", 5, listOf("com.example.a"))
         val vm = newViewModel()
         vm.startRoutine(routine)
         runCurrent()
@@ -314,7 +353,7 @@ class FocusViewModelTest {
 
     @Test
     fun `the app guard sees a routine session's allowed apps until it ends`() = runTest(dispatcher) {
-        val routine = Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a"))
+        val routine = Routine(0, IconPool.SUN, "Morning", 5, listOf("com.example.a"))
         val vm = newViewModel()
         vm.updateRoutine(routine)
         assertNull(savedAllowedApps())
@@ -328,7 +367,7 @@ class FocusViewModelTest {
     @Test
     fun `the app guard sees no allowed apps in a plain session`() = runTest(dispatcher) {
         val vm = newViewModel()
-        vm.updateRoutine(Routine(0, RoutineIcon.SUN, "Morning", 5, listOf("com.example.a")))
+        vm.updateRoutine(Routine(0, IconPool.SUN, "Morning", 5, listOf("com.example.a")))
         vm.start()
         assertEquals(emptyList<String>(), savedAllowedApps())
         vm.stop()

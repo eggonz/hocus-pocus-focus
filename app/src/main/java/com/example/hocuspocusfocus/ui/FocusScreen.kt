@@ -21,16 +21,20 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -42,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,7 +70,7 @@ import com.example.hocuspocusfocus.ui.theme.Night
  * when [remainingMillis] is null (or, when [showAppGuardPrompt], a prompt to turn on the app guard
  * instead of all but the settings button), and otherwise the countdown of a [durationMinutes]
  * session with the [allowedApps] it can open, which are greyed out and can't be tapped or scrolled unless
- * [canOpenApps].
+ * [canOpenApps], and pause or resume (by [isPaused]) and stop buttons, stop asking for confirmation first.
  */
 @Composable
 fun FocusScreen(
@@ -74,10 +79,13 @@ fun FocusScreen(
     onStepDuration: (steps: Int) -> Unit,
     onStart: () -> Unit,
     onStop: () -> Unit,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenRoutines: () -> Unit,
     allowedApps: List<InstalledApp>,
     onOpenApp: (InstalledApp) -> Unit,
+    isPaused: Boolean = false,
     canOpenApps: Boolean = true,
     showAppGuardPrompt: Boolean = false,
     onTurnOnAppGuard: () -> Unit = {},
@@ -107,7 +115,17 @@ fun FocusScreen(
                     onTurnOnAppGuard,
                 )
             } else {
-                FocusContent(remainingMillis, durationMinutes, allowedApps, onOpenApp, canOpenApps, onStop)
+                FocusContent(
+                    remainingMillis,
+                    durationMinutes,
+                    allowedApps,
+                    onOpenApp,
+                    canOpenApps,
+                    isPaused,
+                    onPause,
+                    onResume,
+                    onStop,
+                )
             }
         }
     }
@@ -162,7 +180,9 @@ private fun RoutinesButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         onClick = onClick,
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        // Not the dimmer default onSurfaceVariant, so the label matches the picker's duration
+        contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = modifier,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(4.dp)) {
@@ -181,7 +201,6 @@ private fun RoutinesButton(onClick: () -> Unit, modifier: Modifier = Modifier) {
                 Icon(
                     painterResource(R.drawable.ic_chevron_right),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -253,7 +272,7 @@ private fun DurationPicker(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)
+            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
             .padding(4.dp),
     ) {
         IconButton(
@@ -285,12 +304,13 @@ private fun FocusContent(
     allowedApps: List<InstalledApp>,
     onOpenApp: (InstalledApp) -> Unit,
     canOpenApps: Boolean,
+    isPaused: Boolean,
+    onPause: () -> Unit,
+    onResume: () -> Unit,
     onStop: () -> Unit,
 ) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
+    var confirmStop by rememberSaveable { mutableStateOf(false) }
+    RingWithAppsBelow {
         Box(
             modifier = Modifier
                 .widthIn(max = 320.dp)
@@ -322,15 +342,60 @@ private fun FocusContent(
                     fontSize = if (countdown.length > 5) 56.sp else 76.sp,
                     fontWeight = FontWeight.Light,
                 )
+                Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                    IconButton(onClick = if (isPaused) onResume else onPause) {
+                        Icon(
+                            painterResource(if (isPaused) R.drawable.ic_play else R.drawable.ic_pause),
+                            stringResource(if (isPaused) R.string.resume else R.string.pause),
+                        )
+                    }
+                    IconButton(onClick = { confirmStop = true }) {
+                        Icon(painterResource(R.drawable.ic_stop), stringResource(R.string.stop))
+                    }
+                }
             }
         }
         if (allowedApps.isNotEmpty()) {
-            Spacer(Modifier.height(32.dp))
             AllowedAppsRow(allowedApps, onOpenApp, canOpenApps)
         }
-        Spacer(Modifier.height(48.dp))
-        OutlinedButton(onClick = onStop, modifier = Modifier.widthIn(min = 140.dp)) {
-            Text(stringResource(R.string.stop), style = MaterialTheme.typography.titleMedium)
+    }
+
+    if (confirmStop) {
+        AlertDialog(
+            onDismissRequest = { confirmStop = false },
+            title = { Text(stringResource(R.string.stop_session)) },
+            text = { Text(stringResource(R.string.stop_session_message)) },
+            // Both in one full-width row, since the dialog would otherwise put Cancel at the end next to Stop
+            confirmButton = {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    TextButton(onClick = { confirmStop = false }) { Text(stringResource(R.string.cancel)) }
+                    TextButton(onClick = {
+                        confirmStop = false
+                        onStop()
+                    }) { Text(stringResource(R.string.stop)) }
+                }
+            },
+        )
+    }
+}
+
+/**
+ * Centers the first child, the countdown ring, on the whole screen whether or not there is a second, the apps row,
+ * which hangs below it; the ring only moves up when the screen is too short for the row to fit under it.
+ */
+@Composable
+private fun RingWithAppsBelow(content: @Composable () -> Unit) {
+    Layout(content, Modifier.fillMaxSize()) { measurables, constraints ->
+        val looseConstraints = constraints.copy(minWidth = 0, minHeight = 0)
+        val ring = measurables[0].measure(looseConstraints)
+        val apps = measurables.getOrNull(1)?.measure(looseConstraints)
+        val gap = 32.dp.roundToPx()
+        val below = apps?.let { gap + it.height } ?: 0
+        val ringTop = minOf((constraints.maxHeight - ring.height) / 2, constraints.maxHeight - ring.height - below)
+            .coerceAtLeast(0)
+        layout(constraints.maxWidth, constraints.maxHeight) {
+            ring.placeRelative((constraints.maxWidth - ring.width) / 2, ringTop)
+            apps?.placeRelative((constraints.maxWidth - apps.width) / 2, ringTop + ring.height + gap)
         }
     }
 }
@@ -407,6 +472,8 @@ private fun IdlePreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = emptyList(),
@@ -425,6 +492,8 @@ private fun AppGuardPromptPreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = emptyList(),
@@ -444,10 +513,13 @@ private fun RoutineFocusPreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = previewApps(),
             onOpenApp = {},
+            isPaused = true,
         )
     }
 }
@@ -462,6 +534,8 @@ private fun AppsBlockedFocusPreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = List(4) { previewApps() }.flatten(),
@@ -481,6 +555,8 @@ private fun ManyAppsFocusPreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = List(4) { previewApps() }.flatten(),
@@ -499,6 +575,8 @@ private fun FocusPreview() {
             onStepDuration = {},
             onStart = {},
             onStop = {},
+            onPause = {},
+            onResume = {},
             onOpenSettings = {},
             onOpenRoutines = {},
             allowedApps = emptyList(),

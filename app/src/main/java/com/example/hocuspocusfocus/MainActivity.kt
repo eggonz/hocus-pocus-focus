@@ -102,6 +102,7 @@ class MainActivity : ComponentActivity() {
                 val routines by viewModel.routines.collectAsStateWithLifecycle()
                 val sessionRoutine by viewModel.sessionRoutine.collectAsStateWithLifecycle()
                 val alwaysUseAppGuard by viewModel.alwaysUseAppGuard.collectAsStateWithLifecycle()
+                val isPaused by viewModel.isPaused.collectAsStateWithLifecycle()
                 var isDeviceOwner by remember { mutableStateOf(focusLock.isDeviceOwner) }
                 var showSettings by rememberSaveable { mutableStateOf(false) }
                 var showRoutines by rememberSaveable { mutableStateOf(false) }
@@ -179,10 +180,13 @@ class MainActivity : ComponentActivity() {
                         onStepDuration = viewModel::stepDuration,
                         onStart = viewModel::start,
                         onStop = viewModel::stop,
+                        onPause = viewModel::pause,
+                        onResume = viewModel::resume,
                         onOpenSettings = { showSettings = true },
                         onOpenRoutines = { showRoutines = true },
                         allowedApps = appsIn(sessionRoutine?.allowedApps.orEmpty(), installedApps),
                         onOpenApp = { openApp(it.packageName) },
+                        isPaused = isPaused,
                         canOpenApps = isDeviceOwner || isAppGuardOn,
                         showAppGuardPrompt = !isDeviceOwner && alwaysUseAppGuard && !isAppGuardOn,
                         onTurnOnAppGuard = { startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },

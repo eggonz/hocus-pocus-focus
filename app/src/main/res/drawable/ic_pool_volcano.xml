@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "volcano" icon: volcano -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="m80-80 160-360h120l80-200h280L880-80H80Zm123-80h571L660-560H494l-80 200H292l-89 200Zm317-600v-160h80v160h-80Zm181 75-56-56 113-113 57 56-114 113Zm-282 0L306-798l56-57 113 114-56 56Zm355 525H203h571Z" />
+    </group>
+</vector>

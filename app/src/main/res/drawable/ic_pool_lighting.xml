@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "light" icon: lighting -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M367-167q-47-47-47-113H200q-33 0-56.5-23.5T120-360q0-140 92-241.5T440-718v-122h80v122q136 15 228 116.5T840-360q0 33-23.5 56.5T760-280H640q0 66-47 113t-113 47q-66 0-113-47ZM200-360h560q0-116-82-198t-198-82q-116 0-198 82t-82 198Zm336.5 136.5Q560-247 560-280H400q0 33 23.5 56.5T480-200q33 0 56.5-23.5ZM480-280Z" />
+    </group>
+</vector>

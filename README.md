@@ -8,7 +8,7 @@ Built with Kotlin and Jetpack Compose.
 
 - **Big START button** starts focus mode with a countdown timer.
 - **Duration picker** under the button: −/+ step through 5, 10, 15, 20 and 30 min, 1 h, 1 h 30 min, 2 h and 3 h (30 min by default; the last choice is remembered).
-- **Small STOP button** ends focus mode early.
+- **Pause/play and stop buttons** inside the countdown ring, under the time: pause freezes the timer (the phone stays locked) and play resumes it; stop asks for confirmation, then ends focus mode early.
 - **Countdown ring** shows how much of the session is left.
 - **While focus mode is active, the app blocks:**
   - Navigation bar: Home, Back, Recents (and gesture navigation)
@@ -139,7 +139,7 @@ app/src/main/java/com/example/hocuspocusfocus/
 ├── FocusAdminReceiver.kt  # Device admin component targeted by `dpm set-device-owner`
 ├── AppGuardService.kt     # Accessibility service keeping routine sessions to their allowed apps without device owner
 └── ui/
-    ├── FocusScreen.kt     # START button, duration picker, settings and routines buttons, countdown and STOP button
+    ├── FocusScreen.kt     # START button, duration picker, settings and routines buttons, countdown with pause/play and stop buttons
     ├── SettingsScreen.kt  # Alarm sound, lock mode / device-owner removal, version
     ├── RoutinesScreen.kt  # Routines grid (preset sessions), with the add (+) button
     ├── RoutineScreen.kt   # One routine's page, with the edit (pencil) button

@@ -40,6 +40,6 @@ internal val APP_ICON_SIZE = 48.dp
 @Composable
 internal fun previewApps(): List<InstalledApp> = listOf(
     InstalledApp("com.example.clock", "Clock", painterResource(R.drawable.ic_launcher_foreground)),
-    InstalledApp("com.example.reader", "Reader", painterResource(R.drawable.ic_book)),
-    InstalledApp("com.example.weather", "Weather", painterResource(R.drawable.ic_sun)),
+    InstalledApp("com.example.reader", "Reader", painterResource(R.drawable.ic_pool_book)),
+    InstalledApp("com.example.weather", "Weather", painterResource(R.drawable.ic_pool_sun)),
 )

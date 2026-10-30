@@ -32,7 +32,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.Routine
-import com.example.hocuspocusfocus.RoutineIcon
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
 
@@ -85,7 +84,11 @@ private fun RoutineTile(routine: Routine, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         shape = MaterialTheme.shapes.extraLarge,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHigh),
+        // Not the dimmer default onSurfaceVariant, so the title stands out from the duration below it
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+        ),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -124,8 +127,8 @@ private fun RoutinesPreview() {
     HocusPocusFocusTheme {
         RoutinesScreen(
             routines = listOf(
-                Routine(0, RoutineIcon.SUN, "Morning", 60),
-                Routine(1, RoutineIcon.BOOK, "Reading", 30),
+                Routine(0, IconPool.SUN, "Morning", 60),
+                Routine(1, IconPool.BOOK, "Reading", 30),
             ),
             onOpenRoutine = {},
             onAddRoutine = {},

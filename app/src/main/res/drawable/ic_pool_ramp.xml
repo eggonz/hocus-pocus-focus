@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "ramp_right" icon: ramp -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M440-120v-252q-33 45-79 85.5T258-211l-58-58q30-17 71-47t78.5-71.5q37.5-41.5 64-95T440-600v-87l-64 63-56-56 160-160 160 160-56 56-64-63v567h-80Z" />
+    </group>
+</vector>

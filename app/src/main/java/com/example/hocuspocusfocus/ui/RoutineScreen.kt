@@ -36,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hocuspocusfocus.R
 import com.example.hocuspocusfocus.Routine
-import com.example.hocuspocusfocus.RoutineIcon
 import com.example.hocuspocusfocus.ui.theme.DisplayFontFamily
 import com.example.hocuspocusfocus.ui.theme.Glow
 import com.example.hocuspocusfocus.ui.theme.HocusPocusFocusTheme
@@ -190,7 +189,7 @@ private fun RoutinePreview() {
     HocusPocusFocusTheme {
         val apps = previewApps()
         RoutineScreen(
-            Routine(0, RoutineIcon.SUN, "Morning", 60, apps.map { it.packageName }),
+            Routine(0, IconPool.SUN, "Morning", 60, apps.map { it.packageName }),
             installedApps = apps,
             onEdit = {},
             onStart = {},
@@ -207,7 +206,7 @@ private fun RoutineAppGuardHintPreview() {
     HocusPocusFocusTheme {
         val apps = previewApps()
         RoutineScreen(
-            Routine(0, RoutineIcon.SUN, "Morning", 60, apps.map { it.packageName }),
+            Routine(0, IconPool.SUN, "Morning", 60, apps.map { it.packageName }),
             installedApps = apps,
             onEdit = {},
             onStart = {},

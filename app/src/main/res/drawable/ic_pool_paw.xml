@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Based on Material Symbols "pets": four oval toes fanning out over a lobed pad -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M233 -419.7A80 110 -30 1 1 123 -610.3A80 110 -30 1 1 233 -419.7ZM727 -419.7A80 110 30 1 1 837 -610.3A80 110 30 1 1 727 -419.7ZM377.8 -603.7A90 124 -12 1 1 326.2 -846.3A90 124 -12 1 1 377.8 -603.7ZM582.2 -603.7A90 124 12 1 1 633.8 -846.3A90 124 12 1 1 582.2 -603.7ZM480-490C590-490 650-415 715-320C780-225 760-90 635-90C570-90 535-112 480-112C425-112 390-90 325-90C200-90 180-225 245-320C310-415 370-490 480-490Z" />
+    </group>
+</vector>

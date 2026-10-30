@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "currency_lira" icon: lira -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M360-120v-206l-120 75v-95l120-75v-94l-120 75v-94l120-76v-230h80v180l160-100v94L440-565v94l160-100v94L440-376v176q83 0 141.5-58.5T640-400h80q0 117-81.5 198.5T440-120h-80Z" />
+    </group>
+</vector>

@@ -1,21 +1,13 @@
 package com.example.hocuspocusfocus
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
+import com.example.hocuspocusfocus.ui.IconPool
 import org.json.JSONArray
 import org.json.JSONObject
-
-/** The icons a routine can have. Persisted by name, so renaming an entry resets routines that use it. */
-enum class RoutineIcon(@param:DrawableRes val drawable: Int, @param:StringRes val label: Int) {
-    SUN(R.drawable.ic_sun, R.string.icon_sun),
-    MOON(R.drawable.ic_moon, R.string.icon_moon),
-    BOOK(R.drawable.ic_book, R.string.icon_book),
-}
 
 /** A preset focus session the user can edit. [allowedApps] holds package names. */
 data class Routine(
     val id: Int,
-    val icon: RoutineIcon,
+    val icon: IconPool,
     val title: String,
     val durationMinutes: Int,
     val allowedApps: List<String> = emptyList(),
@@ -38,7 +30,7 @@ internal fun routinesFromJson(json: String): List<Routine> {
         val routine = array.getJSONObject(index)
         Routine(
             id = routine.getInt("id"),
-            icon = RoutineIcon.entries.find { it.name == routine.getString("icon") } ?: RoutineIcon.SUN,
+            icon = IconPool.entries.find { it.name == routine.getString("icon") } ?: IconPool.DEFAULT,
             title = routine.getString("title"),
             durationMinutes = routine.getInt("duration_minutes"),
             // Absent in routines saved before allowed apps existed

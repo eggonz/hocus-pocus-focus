@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Based on Material Symbols "wb_twilight": a filled half sun with five rays over the horizon -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox; 40 less centers the art (y -720..-160) vertically -->
+    <group android:translateY="920">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M80-160v-80h800v80H80ZM440-600v-120h80v120h-80ZM80-320v-80h120v80H80Zm680 0v-80h120v80H760ZM310.3-546.3L225.4-631.1L168.9-574.6L253.7-489.7ZM649.7-546.3L734.6-631.1L791.1-574.6L706.3-489.7ZM280-320A200 200 0 0 1 680-320H280Z" />
+    </group>
+</vector>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "downhill_skiing" icon: skiing -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M740-40q-26 0-50.5-4T642-56L80-261l20-57 276 101 69-178-143-149q-27-28-21.5-66.5T320-669l139-80q17-10 34.5-11.5T528-755q17 6 29.5 19t18.5 31l13 43q13 43 42.5 76t70.5 50l21-64 57 18-45 138q-74-12-131-58t-84-114l-101 58 121 138-89 230 124 45 84-257q14 5 28 9t29 7l-85 262 31 11q18 6 37.5 9.5T740-100q26 0 49.5-5t45.5-15l45 45q-32 17-67 26t-73 9ZM603.5-723.5Q580-747 580-780t23.5-56.5Q627-860 660-860t56.5 23.5Q740-813 740-780t-23.5 56.5Q693-700 660-700t-56.5-23.5Z" />
+    </group>
+</vector>

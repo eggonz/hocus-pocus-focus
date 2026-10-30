@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "airline_seat_flat" icon: nap -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M360-400v-280h360q66 0 113 47t47 113v120H360Zm80-200v120-120ZM80-280v-80h800v80H80Zm35-155q-35-35-35-85t35-85q35-35 85-35t85 35q35 35 35 85t-35 85q-35 35-85 35t-85-35Zm113.5-56.5Q240-503 240-520t-11.5-28.5Q217-560 200-560t-28.5 11.5Q160-537 160-520t11.5 28.5Q183-480 200-480t28.5-11.5ZM440-480h360v-40q0-33-23.5-56.5T720-600H440v120Zm-240-40Z" />
+    </group>
+</vector>

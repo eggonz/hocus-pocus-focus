@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drawn for this app: dragonfly silhouette with swept forewings and a long tapering tail -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Head, thorax and tail -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12.02 6.05C12.61 6.05 13.1 6.49 13.1 7.07C13.1 7.66 12.61 8.1 12.02 8.1C11.44 8.1 10.95 7.66 10.95 7.07C10.95 6.49 11.44 6.05 12.02 6.05ZM12.02 8.05C12.66 8.05 13.1 8.93 13.1 10.39C13.1 11.27 12.71 11.85 12.34 12.34L12.29 16.05L12.2 18.49C12.15 19.27 12.07 19.56 12.02 19.61C11.98 19.56 11.9 19.27 11.85 18.49L11.76 16.05L11.71 12.34C11.34 11.85 10.95 11.27 10.95 10.39C10.95 8.93 11.39 8.05 12.02 8.05Z" />
+    <!-- Forewings; separate paths so opposite windings don't cancel where they overlap the body -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11.34 8.39C8.61 7.32 4.22 5.32 2.27 4.49C1.49 4.24 0.9 4.63 1.05 5.32C1.15 6.2 1.68 7.17 2.85 8C4.71 8.78 8.61 9.12 11.34 9.37ZM12.66 8.39C15.39 7.32 19.78 5.32 21.73 4.49C22.51 4.24 23.1 4.63 22.95 5.32C22.85 6.2 22.32 7.17 21.15 8C19.29 8.78 15.39 9.12 12.66 9.37Z" />
+    <!-- Hindwings -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11.34 9.32C8.61 9.27 5.2 9.32 3.98 9.71C3.15 10 3.2 10.93 4.02 11.27C5.29 12.05 7.24 11.9 8.95 11.07C9.68 10.78 10.37 10.44 11.34 10.2ZM12.66 9.32C15.39 9.27 18.8 9.32 20.02 9.71C20.85 10 20.8 10.93 19.98 11.27C18.71 12.05 16.76 11.9 15.05 11.07C14.32 10.78 13.63 10.44 12.66 10.2Z" />
+</vector>

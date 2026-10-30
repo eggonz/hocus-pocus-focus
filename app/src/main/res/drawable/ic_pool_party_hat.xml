@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Drawn for this app: party hat, a polka-dot cone with a pompom on top -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF000000"
+        android:fillType="evenOdd"
+        android:pathData="M12,6.375L19,20.375Q12,22.875 5,20.375ZM11,10.875A1,1 0 1 0 11,12.875A1,1 0 1 0 11,10.875ZM13.5,14.375A1,1 0 1 0 13.5,16.375A1,1 0 1 0 13.5,14.375ZM10,16.875A1,1 0 1 0 10,18.875A1,1 0 1 0 10,16.875ZM12,2.375A1.75,1.75 0 1 0 12,5.875A1.75,1.75 0 1 0 12,2.375Z" />
+</vector>

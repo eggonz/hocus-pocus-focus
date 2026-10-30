@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbols "scanner" icon: scanner -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Material Symbols paths use a 0,-960 viewBox -->
+    <group android:translateY="960">
+        <path
+            android:fillColor="#FF000000"
+            android:pathData="M704-480 140-684l28-76 624 228q20 8 34 28t14 44v220q0 33-23.5 56.5T760-160H200q-33 0-56.5-23.5T120-240v-160q0-33 23.5-56.5T200-480h504Zm56 240v-160H200v160h560Zm-360-40h320v-80H400v80Zm-91.5-11.5Q320-303 320-320t-11.5-28.5Q297-360 280-360t-28.5 11.5Q240-337 240-320t11.5 28.5Q263-280 280-280t28.5-11.5ZM200-240v-160 160Z" />
+    </group>
+</vector>
