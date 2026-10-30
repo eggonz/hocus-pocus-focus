@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 
-PKG=com.example.hocuspocusfocus
+PKG=com.eggonz.hocuspocusfocus
 APK=app/build/outputs/apk/debug/app-debug.apk
 ADB_TIMEOUT=${ADB_TIMEOUT:-90}
 

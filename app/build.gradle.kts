@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.hocuspocusfocus"
+    namespace = "com.eggonz.hocuspocusfocus"
     compileSdk {
         version = release(37) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.hocuspocusfocus"
+        applicationId = "com.eggonz.hocuspocusfocus"
         // 28: DevicePolicyManager.setLockTaskFeatures, which turns off the power menu and status bar
         minSdk = 28
         targetSdk = 37

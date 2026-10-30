@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Focus app: START begins a session (5 min–3 h) that locks the phone to the app via lock task mode; routines add allowed apps. Single-module Android app (`:app`, package `com.example.hocuspocusfocus`), Kotlin + Compose, minSdk 28, target SDK 37. README.md is the user-facing spec.
+Focus app: START begins a session (5 min–3 h) that locks the phone to the app via lock task mode; routines add allowed apps. Single-module Android app (`:app`, package `com.eggonz.hocuspocusfocus`), Kotlin + Compose, minSdk 28, target SDK 37. README.md is the user-facing spec.
 
 ## Working efficiently
 
@@ -23,8 +23,9 @@ Focus app: START begins a session (5 min–3 h) that locks the phone to the app 
 - `FocusLock`: device owner gives the full lock (`LOCK_TASK_FEATURE_NONE`, routine apps whitelisted); otherwise screen pinning (soft lock), which blocks apps that open in their own task, so sessions with allowed apps aren't pinned while the app guard is on (nor any session with "Always use the app guard"). `releaseDeviceOwner()` is the only way to make the app uninstallable again.
 - `AppGuardService`: accessibility service that brings the app back unless the front app is allowed (routine apps, system UI, keyboards, call screens).
 - `FocusAdminReceiver`: target of `dpm set-device-owner`; renaming it breaks the README command.
-- `Routine.kt`: routine model and JSON. `AlarmPlayer.kt`: end-of-session sound.
-- `ui/`: stateless screens (values in, callbacks out): `HomeScreen` (idle), `FocusScreen` (countdown), `SettingsScreen`, `RoutinesScreen` (grid), `RoutineScreen` (page), `EditRoutineScreen`, `AppGuardHelpDialog`, `AppIcon` (`InstalledApp`), `IconPool` (enum of every routine icon, persisted by name, and the quick-pick lists).
+- `Routine.kt`: routine model and JSON. `AlarmPlayer.kt`: end-of-session sound. `UpdateChecker.kt`: GitHub latest-release check, run once in `MainActivity.onCreate`; its APK link relies on `release.yml` uploading `hocus-pocus-focus.apk`.
+- `ui/`: stateless screens (values in, callbacks out): `HomeScreen` (idle), `FocusScreen` (countdown), `SettingsScreen`, `RoutinesScreen` (grid), `RoutineScreen` (page), `EditRoutineScreen`, `AppGuardHelpDialog`, `UpdateDialog`, `AppIcon` (`InstalledApp`), `IconPool` (enum of every routine icon, persisted by name, and the quick-pick lists).
+- `docs/`: GitHub Pages download page. Its colors, fonts (copies) and `icon.svg` mirror `ui/theme/` and the launcher icon by hand, so change them together.
 - System bars stay visible during a session on purpose: hiding them makes Android show a misleading "swipe down to exit" hint.
 
 ## Code style

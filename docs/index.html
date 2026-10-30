@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hocus Pocus, Now You Focus</title>
+    <meta name="description" content="A minimal Android focus app: create custom focus routines and run a focus session that locks the phone down until it ends.">
+    <meta name="theme-color" content="#140B22">
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <style>
+        /* Same palette and fonts as the app: ui/theme/Theme.kt and Type.kt */
+        @font-face {
+            font-family: "Space Grotesk";
+            src: url("fonts/space_grotesk.ttf") format("truetype");
+            font-weight: 300 700;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: "DM Sans";
+            src: url("fonts/dm_sans.ttf") format("truetype");
+            font-weight: 400 600;
+            font-display: swap;
+        }
+
+        :root {
+            --night: #140b22;
+            --glow: #3b2266;
+            --amber: #ffc94d;
+            --lavender: #cdb8f0;
+            --on-amber: #2e1a47;
+            --on-night: #f3edff;
+            --surface-variant: #2a1d40;
+            --on-surface-variant: #b9aacf;
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden; /* The halo is as wide as the screen, past this padding */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 24px;
+            background: var(--night);
+            color: var(--on-night);
+            font-family: "DM Sans", system-ui, sans-serif;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 420px;
+        }
+
+        .logo {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+        }
+
+        h1 {
+            margin: 16px 0 8px;
+            font-family: "Space Grotesk", system-ui, sans-serif;
+            font-size: 28px;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+
+        .tagline {
+            margin: 0;
+            color: var(--on-surface-variant);
+            line-height: 1.5;
+        }
+
+        /* The app's start screen: the amber button in the middle of a violet halo */
+        .halo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100vw;
+            height: 360px;
+            background: radial-gradient(circle 180px at center, var(--glow), var(--night));
+        }
+
+        .download {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 240px;
+            height: 240px;
+            border-radius: 50%;
+            background: var(--amber);
+            box-shadow: 0 0 48px var(--glow);
+            color: var(--on-amber);
+            font-family: "Space Grotesk", system-ui, sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-decoration: none;
+            transition: transform 120ms ease;
+        }
+
+        .download:hover {
+            transform: scale(1.03);
+        }
+
+        .download:active {
+            transform: scale(0.98);
+        }
+
+        .download:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--lavender);
+            outline-offset: 4px;
+        }
+
+        .version {
+            min-width: 232px;
+            margin: 0;
+            padding: 14px 24px;
+            border-radius: 999px;
+            background: var(--surface-variant);
+            font-family: "Space Grotesk", system-ui, sans-serif;
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .note {
+            max-width: 420px;
+            margin: 20px 0 0;
+            color: var(--on-surface-variant);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        footer a {
+            color: var(--lavender);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <img class="logo" src="icon.svg" alt="">
+        <h1>Hocus Pocus,</br>Now You Focus</h1>
+        <p class="tagline">Create custom focus routines and run a focus session</br>that locks the phone down until it ends.</p>
+    </header>
+
+    <div class="halo">
+        <a class="download" href="https://github.com/eggonz/hocus-pocus-focus/releases/latest/download/hocus-pocus-focus.apk" aria-label="Download the latest version for Android">DOWNLOAD</a>
+    </div>
+
+    <p class="version" id="version">Latest version</p>
+    <p class="note">For Android 9 or newer.</br>Your browser may ask you to allow installing apps from it.</p>
+
+    <footer>
+        <a href="https://github.com/eggonz/hocus-pocus-focus">Source code on GitHub</a>
+    </footer>
+
+    <script>
+        // The download link works without this, so on failure the label just stays generic
+        fetch("https://api.github.com/repos/eggonz/hocus-pocus-focus/releases/latest")
+            .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+            .then((release) => {
+                document.getElementById("version").textContent = `Version ${release.tag_name.replace(/^v/, "")}`;
+            })
+            .catch(() => {});
+    </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 # Hocus Pocus, Now You Focus
 
-A minimal Android focus app: one big button starts a focus session (5 minutes to 3 hours), and while it runs the phone is locked down so you can't escape into other apps.
+A minimal Android focus app: starts a focus session (5 minutes to 3 hours), and while it runs the phone is locked down so you can't escape into other apps.
+Create custom routines with tasks and allowed apps, and the app will keep you on track.
 
 Built with Kotlin and Jetpack Compose.
 
@@ -19,9 +20,11 @@ Built with Kotlin and Jetpack Compose.
   See [How it works](#how-it-works) for the difference between the full and soft lock.
 - The screen stays on during a session, also while an allowed app is open.
 - When the timer reaches 0, focus mode ends, a short alarm sound plays once, and the phone works normally again. Stopping early plays nothing.
+- When the app opens, it asks GitHub for the latest release. If that's newer than the installed version, a **New version available** prompt offers to download its APK in the browser (or waits for the end of the session, if one is running). Without a connection nothing is shown, and the prompt comes back the next time the app opens if it's dismissed.
 - **Settings** (gear button, top left of the start screen; not reachable during a session):
   - **Alarm sound:** picked with the system sound picker from the notification sounds (the default notification sound unless changed; Silent turns it off). It plays at alarm volume and is cut off after 4 seconds, so a long sound stays a short notice.
   - **Lock:** whether the app has the full lock (device owner, with the **Remove device owner** button) or the soft lock.
+  - **Share the app:** sends a link to the download page through the system share sheet.
   - The app version.
 - **Routines** (sun-and-moon button above START; not reachable during a session): a grid of preset sessions, each with an icon, a title and a length. It starts with one, **Morning** (1 h, with nine sample tasks), and the + button at the top right adds a new one (untitled, 1 h, no allowed apps), opening it straight in the editor. Tapping a routine opens its page, and the pencil button at its top right opens an editor for its title, icon (sun, moon or book), length (set with −30/−5 and +5/+30 minute buttons, from 5 min to 3 h) allowed apps (a grid of app icons: 4 per row, up to 8, with the count next to the heading: the + at the end adds one from the installed apps, and each icon's red − badge removes it) and tasks (up to 20, with the count next to the heading: the + adds a row with an icon picker, a label field and an X that removes it). The routine's page shows how many tasks it has and, if it allows any apps, how many. Changes are saved as you make them, and the trash button at the top right of the editor deletes the routine after a confirmation. The **START** button at the bottom of a routine's page starts a session as long as the routine, and the countdown screen then shows the allowed apps' icons in a row that scrolls sideways (fading out at the edges where more are hidden): tapping one opens that app, Back returns to the countdown, and every other app stays locked. Without device owner this needs the **app guard** (see below): until it's on, the routine's page marks its allowed apps with a blocked symbol and shows a hint with a **Turn on** button above START, and a session started anyway shows the apps greyed out, and they can't be tapped or scrolled. If the timer runs out while an allowed app is open, the app comes back to the front and unlocks. If the routine has tasks, the countdown shrinks to the top of the screen, with its tasks below it as a grid of round icon buttons (5 per row) that toggle on and off when tapped, with no other effect (toggling one on briefly shows its label above it), and the allowed apps at the bottom of the screen.
 - A dark violet and amber look in both the light and dark system themes, set in [Space Grotesk](https://github.com/floriankarsten/space-grotesk) and [DM Sans](https://github.com/googlefonts/dm-fonts) (bundled, SIL Open Font License, see `licenses/`).
@@ -80,7 +83,7 @@ This also works when pushing from Android Studio. Skip it for one push with `git
 
 GitHub Actions runs `scripts/check.sh` (debug build, lint, unit tests) on every push to `master` and every pull request (`.github/workflows/ci.yml`). The APK and the lint and test reports are attached to the run as artifacts.
 
-Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`). It doesn't run the checks, so run `./scripts/check.sh` before tagging (the pre-push hook does this on push). The tag must match `versionName` in `app/build.gradle.kts`:
+Pushing a `v*` tag builds a signed release APK and publishes it as a GitHub release (`.github/workflows/release.yml`), both versioned and as `hocus-pocus-focus.apk`, so the newest is always at `https://github.com/eggonz/hocus-pocus-focus/releases/latest/download/hocus-pocus-focus.apk`. The download page at `https://eggonz.github.io/hocus-pocus-focus/` links there and shows the latest version number: it's the static site in `docs/`, published with GitHub Pages (Settings → Pages → Deploy from a branch → `master`, `/docs`). It doesn't run the checks, so run `./scripts/check.sh` before tagging (the pre-push hook does this on push). The tag must match `versionName` in `app/build.gradle.kts`:
 
 ```bash
 git tag v0.1.0 && git push origin v0.1.0
@@ -116,7 +119,7 @@ Android only allows setting a device owner on a phone with **no accounts** on it
 3. Run:
 
    ```bash
-   adb shell dpm set-device-owner com.example.hocuspocusfocus/.FocusAdminReceiver
+   adb shell dpm set-device-owner com.eggonz.hocuspocusfocus/.FocusAdminReceiver
    ```
 
 4. Re-add your accounts if you removed them.
@@ -130,7 +133,7 @@ A device-owner app **can't be uninstalled** normally. To undo it, open the app (
 ## Project structure
 
 ```
-app/src/main/java/com/example/hocuspocusfocus/
+app/src/main/java/com/eggonz/hocuspocusfocus/
 ├── MainActivity.kt        # Hosts the UI; applies the lock, screen-on flag and volume blocking
 ├── FocusViewModel.kt      # Session timer, selected duration, alarm sound and routines, persisted in SharedPreferences
 ├── Routine.kt             # Routine model, its icons and JSON storage format
@@ -138,11 +141,13 @@ app/src/main/java/com/example/hocuspocusfocus/
 ├── FocusLock.kt           # Lock task mode and device-owner policies
 ├── FocusAdminReceiver.kt  # Device admin component targeted by `dpm set-device-owner`
 ├── AppGuardService.kt     # Accessibility service keeping routine sessions to their allowed apps without device owner
+├── UpdateChecker.kt       # Asks GitHub whether a newer release is out
 └── ui/
     ├── HomeScreen.kt      # START button, duration picker, settings and routines buttons
     ├── FocusScreen.kt     # Countdown with pause/play and stop buttons, tasks and allowed apps
     ├── AppGuardHelpDialog.kt # Steps to turn on the app guard, with buttons to the settings pages
-    ├── SettingsScreen.kt  # Alarm sound, lock mode / device-owner removal, version
+    ├── UpdateDialog.kt    # "New version available" prompt
+    ├── SettingsScreen.kt  # Alarm sound, lock mode / device-owner removal, sharing, version
     ├── RoutinesScreen.kt  # Routines grid (preset sessions), with the add (+) button
     ├── RoutineScreen.kt   # One routine's page, with the edit (pencil) button
     ├── EditRoutineScreen.kt # Routine title, icon, length, allowed apps and tasks editor
@@ -150,7 +155,12 @@ app/src/main/java/com/example/hocuspocusfocus/
     └── theme/
         ├── Theme.kt       # Material 3 theme: the app's own dark palette
         └── Type.kt        # Typography from the bundled fonts in res/font
-app/src/test/java/com/example/hocuspocusfocus/  # JVM unit tests (timer, alarm, countdown formatting)
+app/src/test/java/com/eggonz/hocuspocusfocus/  # JVM unit tests (timer, alarm, countdown formatting)
 scripts/check.sh                                # CI checks, also run by .githooks/pre-push
-licenses/                                       # Licenses of the bundled fonts
+docs/                                           # Download page, published with GitHub Pages
+licenses/                                       # Licenses and notices for the bundled fonts and icons
 ```
+
+## License
+
+The code is under the [MIT license](LICENSE). The bundled fonts and icons have their own licenses, and a few icons show third-party trademarks and characters that the MIT license doesn't cover: see [`licenses/THIRD_PARTY_NOTICES.md`](licenses/THIRD_PARTY_NOTICES.md).

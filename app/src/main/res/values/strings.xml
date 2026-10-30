@@ -100,5 +100,11 @@
     <string name="always_use_app_guard">Always use the app guard</string>
     <string name="always_use_app_guard_description">When no other apps are allowed, the app guard is optional. It\'s an alternative to pinning the app: not as limited as pinning, and the \"App is pinned\" notice isn\'t shown.</string>
     <string name="app_guard_required">Enabling app guard is required to start a session.</string>
+    <string name="share_app">Share the app</string>
+    <string name="share_app_message">Try Hocus Pocus, Now You Focus: create custom focus routines and run a focus session that locks the phone down until it ends. %1$s</string>
     <string name="version">Version %1$s</string>
+    <string name="update_title">New version available</string>
+    <string name="update_message">Version %1$s is out. You have version %2$s.</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
 </resources>

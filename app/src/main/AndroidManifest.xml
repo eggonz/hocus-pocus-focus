@@ -4,6 +4,8 @@
 
     <!-- Keeps the screen on while a session's allowed app is in front -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Checks GitHub for a newer release when the app opens -->
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Lets the routine editor list the launchable apps (package visibility, Android 11+) -->
     <queries>

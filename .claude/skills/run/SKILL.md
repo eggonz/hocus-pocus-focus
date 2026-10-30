@@ -18,7 +18,7 @@ On a build failure (exit 1 before install), fix the compile error and run the sc
 
 ## After launching (only when checking behavior)
 
-- Lock mode: `adb shell dpm list-owners`. Full lock only if `com.example.hocuspocusfocus/.FocusAdminReceiver` is DeviceOwner; otherwise soft lock (screen pinning).
+- Lock mode: `adb shell dpm list-owners`. Full lock only if `com.eggonz.hocuspocusfocus/.FocusAdminReceiver` is DeviceOwner; otherwise soft lock (screen pinning).
 - Crashes: `adb logcat -d -b crash`.
 - Screen: `adb exec-out screencap -p > <scratchpad>/screen.png`, then read the image.
 - Lock task state during a session: `adb shell dumpsys activity activities | grep -i locktask` (`LOCKED` is full lock, `PINNED` is soft lock).
