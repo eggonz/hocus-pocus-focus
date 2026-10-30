@@ -5,6 +5,7 @@ import android.graphics.Color
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.PowerManager
 import android.provider.Settings
 import android.view.KeyEvent
 import android.view.WindowManager
@@ -55,6 +56,14 @@ class MainActivity : ComponentActivity() {
     // pinning prompt) doesn't lock again, and an ongoing session is re-locked after recreation
     private var focusModeApplied = false
 
+    // Keeps the screen on while an allowed app is in front, where this window's FLAG_KEEP_SCREEN_ON doesn't count
+    @Suppress("DEPRECATION") // The replacement, FLAG_KEEP_SCREEN_ON, can't cover another app's window
+    private val allowedAppWakeLock by lazy {
+        getSystemService(PowerManager::class.java)
+            .newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK, "hocuspocusfocus:allowed_app")
+            .apply { setReferenceCounted(false) }
+    }
+
     // Checked on every resume, since the user turns it on in the system settings
     private var isAppGuardOn by mutableStateOf(false)
 
@@ -90,6 +99,7 @@ class MainActivity : ComponentActivity() {
             viewModel.remainingMillis.collect { remaining ->
                 val isResumed = lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
                 if (remaining == null && focusModeApplied && !isResumed) {
+                    releaseAllowedAppWakeLock()
                     startActivity(Intent(this@MainActivity, MainActivity::class.java))
                 }
             }
@@ -234,6 +244,24 @@ class MainActivity : ComponentActivity() {
             .sortedBy { it.label.lowercase() }
     }
 
+    override fun onStart() {
+        super.onStart()
+        releaseAllowedAppWakeLock()
+    }
+
+    // Harmless when the stop is the screen turning off: a screen wake lock neither wakes it nor keeps the CPU up
+    override fun onStop() {
+        super.onStop()
+        if (isFocusActive) allowedAppWakeLock.acquire(ALLOWED_APP_WAKE_LOCK_TIMEOUT_MILLIS)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseAllowedAppWakeLock()
+    }
+
+    private fun releaseAllowedAppWakeLock() = allowedAppWakeLock.release()
+
     // Opened into this task rather than a new one, since screen pinning blocks new tasks; Back returns here
     private fun openApp(packageName: String) {
         val intent = packageManager.getLaunchIntentForPackage(packageName) ?: return
@@ -276,6 +304,9 @@ class MainActivity : ComponentActivity() {
         (isFocusActive && keyCode in BLOCKED_KEYS) || super.onKeyUp(keyCode, event)
 
     private companion object {
+        // The longest session; a backstop in case this process is frozen and can't release the lock itself
+        const val ALLOWED_APP_WAKE_LOCK_TIMEOUT_MILLIS = 3 * 60 * 60 * 1000L
+
         val BLOCKED_KEYS = setOf(
             KeyEvent.KEYCODE_VOLUME_UP,
             KeyEvent.KEYCODE_VOLUME_DOWN,

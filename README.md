@@ -17,7 +17,7 @@ Built with Kotlin and Jetpack Compose.
   - Power button: the long-press power menu (full lock only)
 
   See [How it works](#how-it-works) for the difference between the full and soft lock.
-- The screen stays on during a session.
+- The screen stays on during a session, also while an allowed app is open.
 - When the timer reaches 0, focus mode ends, a short alarm sound plays once, and the phone works normally again. Stopping early plays nothing.
 - **Settings** (gear button, top left of the start screen; not reachable during a session):
   - **Alarm sound:** picked with the system sound picker from the notification sounds (the default notification sound unless changed; Silent turns it off). It plays at alarm volume and is cut off after 4 seconds, so a long sound stays a short notice.
